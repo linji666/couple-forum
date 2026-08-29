@@ -1,7 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#883a5e">
+<link rel="manifest" href="/manifest.json">
 <title>小情侣竟如此！</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -155,9 +160,6 @@ var WREPLIES=["好甜好甜，磕到了！","前排卖瓜子","请你们原地�
 var users={},feed=[],view="list",curUser=null,curPost=null,heroUser="桐桐",pickerFor="",pickerMode="",editKind="",editFor="",notifs=[];
 function num(n){return parseInt(String(n).replace(/[^0-9]/g,""))||0;}
 function saveUsers(){try{localStorage.setItem("cf_users",JSON.stringify(users));}catch(e){}}
-function loadUsers(){try{var s=localStorage.getItem("cf_users");if(s)users=JSON.parse(s);}catch(e){}}
-function saveFeed(){try{localStorage.setItem("cf_feed",JSON.stringify(feed));}catch(e){}}
-function loadFeedStore(){try{var s=localStorage.getItem("cf_feed");if(s)feed=JSON.parse(s);}catch(e){}}
 function esc(s){return String(s==null?"":s).replace(/[<>&"]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];});}
 function imgHtml(p){return p.img?'<img class="pimg" src="'+esc(p.img)+'" alt="">':"";}
 function avatarData(u){var x=users[u]||{bg:"#eee",fg:"#333",pet:""};var pet=x.pet?'<span class="avpet">'+x.pet+'</span>':"";if(x.img){return '<img src="'+x.img+'" alt="">';}return '<div class="avbody" style="--bg:'+(x.bg||"#eee")+';--fg:'+(x.fg||"#333")+'">'+pet+'</div>';}
@@ -169,8 +171,8 @@ function highCmt(c){return '<div class="cmt">'+av(c.author,30,true)+'<div class=
 function heroLeft(u,edit,pickAv){var x=users[u]||{bio:""};var oc=pickAv?' onclick="openPicker(\''+u+'\')" style="cursor:pointer"':' onclick="goProfile(\''+u+'\')" style="cursor:pointer"';return '<div class="big-wrap"><div class="avatar"'+oc+' style="width:92px;height:92px">'+avatarData(u)+'</div></div>'+'<div class="idmsg"><div class="hnm" onclick="showEdit(\'name\',\''+u+'\')">'+esc(u)+' ✏️</div><div class="hbio" onclick="showEdit(\'bio\',\''+u+'\')">'+esc(x.bio||"这个人很懒，什么都没写")+(edit?' ✏️':"")+'</div></div>';}
 function setHero(u){var x=users[u]||{cover:"#1a1a2e"};document.getElementById("hero").style.background=x.cover;document.getElementById("hleft").innerHTML=heroLeft(u,view==="profile",view==="profile");heroUser=u;}
 function coverClick(e){if(e.target===document.getElementById("hero")||e.target.classList.contains("shade"))openCover(heroUser);}
-async function fetchUsers(){var r=await fetch("/api/users");var arr=await r.json();(arr||[]).forEach(function(x){users[x.name]={bg:x.bg,fg:x.fg,pet:x.pet,cover:x.cover,bio:x.bio};});saveUsers();}
-async function fetchPosts(){var r=await fetch("/api/posts");feed=await r.json();saveFeed();}
+async function fetchUsers(){var r=await fetch("/api/users");var arr=await r.json();(arr||[]).forEach(function(x){users[x.name]={bg:x.bg,fg:x.fg,pet:x.pet,cover:x.cover,bio:x.bio};});var s=localStorage.getItem("cf_users");if(s){try{var ls=JSON.parse(s);Object.keys(ls).forEach(function(k){if(users[k])users[k]=ls[k];});}catch(e){}}saveUsers();}
+async function fetchPosts(){var r=await fetch("/api/posts");feed=await r.json();}
 async function load(){
   view="list";curUser=null;curPost=null;await fetchPosts();setHero("桐桐");
   var html='<div class="topbar">全部动态</div>';
@@ -193,7 +195,7 @@ function goProfile(u){if(!users[u])return;view="profile";curUser=u;setHero(u);va
 function showEdit(kind,u){editKind=kind;editFor=u;document.getElementById("eTitle").textContent=(kind==="name"?"换个网名（不实名上网）：":"改个性签名：");document.getElementById("eInput").value=(kind==="name"?u:(users[u].bio||""));document.getElementById("eMask").classList.add("show");}
 function closeEdit(){document.getElementById("eMask").classList.remove("show");}
 function saveEdit(){var v=document.getElementById("eInput").value.trim();if(!v)return;var u=editFor;if(editKind==="name"){doRename(u,v);}else{users[u].bio=v;saveUsers();}closeEdit();renderNow();}
-function doRename(u,v){if(v===u)return;users[v]=users[u];delete users[u];feed.forEach(function(p){if(p.author===u)p.author=v;(p.comments||[]).forEach(function(c){if(c.author===u)c.author=v;if(c.at_user===u)c.at_user=v;});});if(curUser===u)curUser=v;if(heroUser===u)heroUser=v;saveUsers();saveFeed();}
+function doRename(u,v){if(v===u)return;users[v]=users[u];delete users[u];feed.forEach(function(p){if(p.author===u)p.author=v;(p.comments||[]).forEach(function(c){if(c.author===u)c.author=v;if(c.at_user===u)c.at_user=v;});});if(curUser===u)curUser=v;if(heroUser===u)heroUser=v;saveUsers();}
 function openPicker(name){pickerFor=name;pickerMode="avatar";document.getElementById("pkTitle").textContent="给 "+name+" 换头像";document.getElementById("covlist").innerHTML="";var g=document.getElementById("grid");g.innerHTML="";LIB.forEach(function(e){var d=document.createElement("div");d.className="g";d.textContent=e;d.onclick=function(){users[name].bg="#eee";users[name].fg="#333";users[name].pet=e;delete users[name].img;saveUsers();closePicker();renderNow();};g.appendChild(d);});document.getElementById("mask").classList.add("show");}
 function openCover(u){pickerFor=u;pickerMode="cover";document.getElementById("pkTitle").textContent="换个背景图";document.getElementById("grid").innerHTML="";var c=document.getElementById("covlist");c.innerHTML="";COVERS.forEach(function(g,i){var d=document.createElement("div");d.className="c";d.style.background=g;d.onclick=function(){users[u].cover=g;saveUsers();closePicker();renderNow();};c.appendChild(d);});document.getElementById("mask").classList.add("show");}
 function closePicker(){document.getElementById("mask").classList.remove("show");}
