@@ -152,15 +152,13 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;m
 var LIB=["🌸","🌙","🍩","💘","🍋","🍉","🍅","🔥","👍","📣","🍓","🐱","🐶","🍦","✨","🥰","😘","🦄","🐰","🐻","🌈","⭐"];
 var COVERS=["#1a1a2e","#ffd3e0","#c2f0d4","#ffd39a","#d4c2ff","#2b2b3a"];
 var WREPLIES=["好甜好甜，磕到了！","前排卖瓜子","请你们原地结婚！","呜呜呜太幸福了","路过，顺便磕一口","好酸，但好爱看","这就是爱情啊","蹲一个后续","细说，快","我也磕到了","羡慕了"];
-var users={};
-var feed=[];
-var view="list",curUser=null,curPost=null,heroUser="桐桐",pickerFor="",pickerMode="",editKind="",editFor="";
-var notifs=[];
+var users={},feed=[],view="list",curUser=null,curPost=null,heroUser="桐桐",pickerFor="",pickerMode="",editKind="",editFor="",notifs=[];
 function num(n){return parseInt(String(n).replace(/[^0-9]/g,""))||0;}
 function saveUsers(){try{localStorage.setItem("cf_users",JSON.stringify(users));}catch(e){}}
 function loadUsers(){try{var s=localStorage.getItem("cf_users");if(s)users=JSON.parse(s);}catch(e){}}
 function saveFeed(){try{localStorage.setItem("cf_feed",JSON.stringify(feed));}catch(e){}}
 function loadFeedStore(){try{var s=localStorage.getItem("cf_feed");if(s)feed=JSON.parse(s);}catch(e){}}
+function esc(s){return String(s==null?"":s).replace(/[<>&"]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];});}
 function avatarData(u){
   var x=users[u]||{bg:"#eee",fg:"#333",pet:""};
   var pet=x.pet?'<span class="avpet">'+x.pet+'</span>':"";
@@ -173,29 +171,20 @@ function av(u,s,clickable){
   return '<div class="avatar"'+oc+' style="width:'+size+'px;height:'+size+'px">'+avatarData(u)+'</div>';
 }
 function head(u){return '<span class="name" onclick="goProfile(\''+u+'\')">'+esc(u)+'</span> <span class="id" onclick="goProfile(\''+u+'\')">@'+esc(u)+'</span>';}
-function esc(s){return String(s==null?"":s).replace(/[<>&"]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];});}
-function cmt(c,hot){
-  var tag=hot?'<span class="hot">高赞</span>':"";var at=c.at_user&&c.at_user!==c.author?'<span class="at">回复 @'+esc(c.at_user)+'：</span>':"";
-  return '<div class="cmt">'+av(c.author,30,true)+'<div class="cw"><div class="nm">'+esc(c.author)+' <span class="rid" onclick="goProfile(\''+c.author+'\')">@'+esc(c.author)+'</span>'+tag+'</div><div class="ct">'+at+esc(c.content)+'</div><div class="cs"><span>👍 '+num(c.likes)+'</span></div></div></div>';
-}
 function fmt(n){n=num(n);return n>=10000?(n/10000).toFixed(1)+"万":n;}
-function heroLeft(u,edit,pickAv){
-  var x=users[u]||{bio:""};
-  var oc=pickAv?' onclick="openPicker(\''+u+'\')" style="cursor:pointer"':' onclick="goProfile(\''+u+'\')" style="cursor:pointer"';
-  return '<div class="big-wrap"><div class="avatar"'+oc+' style="width:92px;height:92px">'+avatarData(u)+'</div></div>'
-    +'<div class="idmsg"><div class="hnm" onclick="showEdit(\'name\',\''+u+'\')">'+esc(u)+' ✏️</div><div class="hbio" onclick="showEdit(\'bio\',\''+u+'\')">'+esc(x.bio||"这个人很懒，什么都没写")+(edit?' ✏️':"")+'</div></div>';
-}
-function setHero(u){var x=users[u]||{cover:"#1a1a2e"};var h=document.getElementById("hero");h.style.background=x.cover;document.getElementById("hleft").innerHTML=heroLeft(u,view==="profile",view==="profile");heroUser=u;}
+function cmt(c,hot){var tag=hot?'<span class="hot">高赞</span>':"";var at=c.at_user&&c.at_user!==c.author?'<span class="at">回复 @'+esc(c.at_user)+'：</span>':"";return '<div class="cmt">'+av(c.author,30,true)+'<div class="cw"><div class="nm">'+esc(c.author)+' <span class="rid" onclick="goProfile(\''+c.author+'\')">@'+esc(c.author)+'</span>'+tag+'</div><div class="ct">'+at+esc(c.content)+'</div><div class="cs"><span>👍 '+num(c.likes)+'</span></div></div></div>';}
+function highCmt(c){return '<div class="cmt">'+av(c.author,30,true)+'<div class="cw"><div class="nm">'+esc(c.author)+' <span class="hot">高赞</span></div><div class="ct">'+esc(c.content)+'</div></div></div>';}
+function heroLeft(u,edit,pickAv){var x=users[u]||{bio:""};var oc=pickAv?' onclick="openPicker(\''+u+'\')" style="cursor:pointer"':' onclick="goProfile(\''+u+'\')" style="cursor:pointer"';return '<div class="big-wrap"><div class="avatar"'+oc+' style="width:92px;height:92px">'+avatarData(u)+'</div></div>'+'<div class="idmsg"><div class="hnm" onclick="showEdit(\'name\',\''+u+'\')">'+esc(u)+' ✏️</div><div class="hbio" onclick="showEdit(\'bio\',\''+u+'\')">'+esc(x.bio||"这个人很懒，什么都没写")+(edit?' ✏️':"")+'</div></div>';}
+function setHero(u){var x=users[u]||{cover:"#1a1a2e"};document.getElementById("hero").style.background=x.cover;document.getElementById("hleft").innerHTML=heroLeft(u,view==="profile",view==="profile");heroUser=u;}
 function coverClick(e){if(e.target===document.getElementById("hero")||e.target.classList.contains("shade"))openCover(heroUser);}
 async function fetchUsers(){var r=await fetch("/api/users");var arr=await r.json();(arr||[]).forEach(function(x){users[x.name]={bg:x.bg,fg:x.fg,pet:x.pet,cover:x.cover,bio:x.bio};});saveUsers();}
 async function fetchPosts(){var r=await fetch("/api/posts");feed=await r.json();saveFeed();}
-function selHero(){if(feed.some(function(p){return p.author===heroUser;})){} }
 async function load(){
   view="list";curUser=null;curPost=null;
   await fetchPosts();
   setHero("桐桐");
   var html='<div class="topbar">全部动态</div>';
-  if(feed.length){feed.forEach(function(p){var top=(p.comments_count?[]:[]);html+='<div class="post" onclick="goPost('+p.id+')"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div><div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div></div>';});}
+  if(feed.length){feed.forEach(function(p){var top=p.top_comments||[];var cmts=top.length?'<div class="cmts">'+top.map(function(c){return highCmt(c);}).join('')+'<div class="more">查看全部 '+p.comments_count+' 条评论 ›</div></div>':'';html+='<div class="post" onclick="goPost('+p.id+')"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div>'+cmts+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div></div>';});}
   else{html+='<div style="text-align:center;color:#aaa;padding:30px">还没有帖子，来发第一个吧！</div>';}
   document.getElementById("view").innerHTML=html;
 }
