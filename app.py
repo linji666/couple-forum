@@ -38,7 +38,6 @@ USERS = {
     "路人乙": {"bg": "#ececec", "fg": "#333", "pet": "🙂", "cover": "#d4c2ff", "bio": "路过，别管我"},
 }
 
-# 预置水军帖（不含桐桐/林霁 —— 让他俩 0 帖自建）
 SEED_POSTS = [
     ("甜甜圈", "今天又磕到了！这条街上最甜的就是这对小情侣了～", "好甜好甜"),
     ("CP头子", "有人问我为什么天天嗑CP……因为爱情真的会发光啊！", "爱情会发光"),
@@ -51,44 +50,6 @@ SEED_POSTS = [
     ("追更小分队队长", "我嗑的CP今天发糖了！嚎了一下午根本停不下来！", "发糖啦"),
     ("隔壁老张", "楼下的猫又胖了一圈，但它看我的眼神好像在说「你管我」。", "猫又胖了"),
 ]
-
-
-def init():
-    con = sqlite3.connect(DB); cur = con.cursor()
-    cur.execute("""CREATE TABLE IF NOT EXISTS posts(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        author TEXT, title TEXT, content TEXT, created_at TEXT, likes INTEGER, comments_count INTEGER) """)
-    cur.execute("""CREATE TABLE IF NOT EXISTS comments(
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        post_id INTEGER, author TEXT, content TEXT, at_user TEXT,
-        created_at TEXT, likes INTEGER) """)
-    cur.execute("""CREATE TABLE IF NOT EXISTS users(
-        name TEXT PRIMARY KEY, bg TEXT, fg TEXT, pet TEXT, cover TEXT, bio TEXT) """)
-    con.commit(); con.close()
-    # 填用户资料
-    con = sqlite3.connect(DB); cur = con.cursor()
-    for name, d in USERS.items():
-        cur.execute("INSERT OR IGNORE INTO users(name,bg,fg,pet,cover,bio) VALUES(?,?,?,?,?,?)",
-                    (name, d["bg"], d["fg"], d["pet"], d["cover"], d["bio"]))
-    con.commit(); con.close()
-    # 若帖子为空，seed 水军帖（不含桐桐/林霁）
-    con = sqlite3.connect(DB); cur = con.cursor()
-    cur.execute("SELECT COUNT(*) FROM posts")
-    cnt = cur.fetchone()[0]
-    con.close()
-    if cnt == 0:
-        for author, title, txt in SEED_POSTS:
-            con = sqlite3.connect(DB); cur = con.cursor()
-            likes = random.randint(10000, 90000)
-            cc = random.randint(30, 300)
-            cur.execute("INSERT INTO posts(author,title,content,created_at,likes,comments_count) VALUES(?,?,?,?,?,?)",
-                        (author, title, txt, now(), likes, cc))
-            pid = cur.lastrowid
-            con.commit(); con.close()
-            trigger_water(pid, txt)
-
-
-init()
 
 
 # ---------- 水军池 + 情绪回复 ----------
@@ -129,6 +90,10 @@ def classify(content):
 
 def water_reply(content):
     return random.choice(REPLY_POOL[classify(content)])
+
+
+def gen_water_comment():
+    return random.choice(WATER)
 
 
 def trigger_water(post_id, content=None):
@@ -311,3 +276,40 @@ def create_post_impl(author, title, content):
     con.commit(); con.close()
     trigger_water(post_id, content)
     return post_id
+
+
+# ---------- 初始化（放最后，等所有函数定义完再执行） ----------
+def init():
+    con = sqlite3.connect(DB); cur = con.cursor()
+    cur.execute("""CREATE TABLE IF NOT EXISTS posts(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        author TEXT, title TEXT, content TEXT, created_at TEXT, likes INTEGER, comments_count INTEGER) """)
+    cur.execute("""CREATE TABLE IF NOT EXISTS comments(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        post_id INTEGER, author TEXT, content TEXT, at_user TEXT,
+        created_at TEXT, likes INTEGER) """)
+    cur.execute("""CREATE TABLE IF NOT EXISTS users(
+        name TEXT PRIMARY KEY, bg TEXT, fg TEXT, pet TEXT, cover TEXT, bio TEXT) """)
+    con.commit(); con.close()
+    con = sqlite3.connect(DB); cur = con.cursor()
+    for name, d in USERS.items():
+        cur.execute("INSERT OR IGNORE INTO users(name,bg,fg,pet,cover,bio) VALUES(?,?,?,?,?,?)",
+                    (name, d["bg"], d["fg"], d["pet"], d["cover"], d["bio"]))
+    con.commit(); con.close()
+    con = sqlite3.connect(DB); cur = con.cursor()
+    cur.execute("SELECT COUNT(*) FROM posts")
+    cnt = cur.fetchone()[0]
+    con.close()
+    if cnt == 0:
+        for author, title, txt in SEED_POSTS:
+            con = sqlite3.connect(DB); cur = con.cursor()
+            likes = random.randint(10000, 90000)
+            cc = random.randint(30, 300)
+            cur.execute("INSERT INTO posts(author,title,content,created_at,likes,comments_count) VALUES(?,?,?,?,?,?)",
+                        (author, title, txt, now(), likes, cc))
+            pid = cur.lastrowid
+            con.commit(); con.close()
+            trigger_water(pid, txt)
+
+
+init()
