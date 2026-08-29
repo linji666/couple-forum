@@ -5,125 +5,126 @@
 <title>小情侣竟如此！</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(135deg,#ffeef5,#f0e6ff);min-height:100vh;padding:20px}
-.wrap{max-width:720px;margin:0 auto}
-h1{text-align:center;font-size:30px;color:#883a5e;letter-spacing:6px;margin-bottom:6px}
-.sub{text-align:center;font-size:13px;color:#b997a8;margin-bottom:20px}
-.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(180,80,120,.1);margin-bottom:14px}
-.btn{background:linear-gradient(90deg,#ff9ec4,#b58aff);color:#fff;border:none;padding:8px 18px;border-radius:20px;font-size:13px;cursor:pointer}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;min-height:100vh}
+.wrap{max-width:640px;margin:0 auto;background:#f5f5f5}
+.topbtns{position:fixed;top:0;left:0;right:0;max-width:640px;margin:0 auto;z-index:40;width:100%;pointer-events:none}
+.bell{position:absolute;top:10px;left:12px;z-index:45;color:#883a5e;font-size:19px;pointer-events:auto;cursor:pointer}
+.plus{position:absolute;top:10px;right:12px;width:30px;height:30px;border-radius:50%;background:#883a5e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;pointer-events:auto;cursor:pointer}
+.bell-dot{position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;border-radius:9px;background:#ff5e5e;color:#fff;font-size:10px;line-height:16px;text-align:center;padding:0 3px}
+.hero{position:relative;height:200px;background:#1a1a2e;background-size:cover;background-position:center}
+.hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.3))}
+.hname{position:absolute;top:0;left:0;right:0;height:46px;line-height:46px;text-align:center;background:rgba(255,255,255,.82);color:#883a5e;font-size:20px;font-weight:800;letter-spacing:8px;z-index:2}
+.hleft{position:absolute;left:18px;bottom:-34px;z-index:2;color:#fff}
+.hleft .big{width:92px;height:92px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:44px;color:#fff}
+.hnm{font-size:22px;font-weight:800;margin-left:8px;display:inline-block;text-shadow:0 1px 6px rgba(0,0,0,.6);vertical-align:bottom}
+.feed{background:#f5f5f5;padding:2px 6px 30px}
+.topbar{display:flex;align-items:center;justify-content:center;padding:6px 0;font-weight:700;font-size:15px;color:#333}
+.back{display:inline-block;color:#883a5e;cursor:pointer;font-size:13px;margin:42px 8px 10px;font-weight:600}
+.post{background:#fff;border-radius:14px;padding:16px;margin:0 8px 12px;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer}
+.head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;color:#fff;flex-shrink:0}
+.name{font-size:14px;font-weight:700;color:#222}
+.id{font-size:12px;color:#999}
+.body{font-size:15px;color:#222;line-height:1.8;margin:6px 0 10px;white-space:pre-wrap}
+.stats{font-size:12px;color:#8a8a8a;border-top:1px solid #f0f0f0;padding-top:10px;display:flex;gap:14px;flex-wrap:wrap}
+.cmts{margin-top:12px;border-top:1px solid #f0f0f0;padding-top:8px}
+.cmt{display:flex;gap:8px;padding:8px 0;border-top:1px dashed #f3f3f3}
+.cmt:first-child{border-top:none}
+.cmt .av{width:30px;height:30px;font-size:15px}
+.cmt .cw{flex:1}
+.cmt .nm{font-size:13px;font-weight:700;color:#222}
+.cmt .ct{font-size:13px;color:#333;line-height:1.6;margin-top:2px}
+.cmt .cs{font-size:11px;color:#aaa;margin-top:4px}
+.hot{background:#fff3f7;color:#ff5e8a;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:6px}
+.more{text-align:center;color:#1a91da;font-size:13px;margin-top:8px;font-weight:600}
+.detail-input{display:flex;gap:8px;margin-top:14px;align-items:center}
+.detail-input input{flex:1;border:1px solid #eee;border-radius:20px;padding:9px 14px;font-size:14px}
+.btn{background:linear-gradient(90deg,#ff9ec4,#b58aff);color:#fff;border:none;padding:8px 16px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap}
 .btn:hover{filter:brightness(1.08)}
-input,textarea{width:100%;border:1px solid #eee;border-radius:10px;padding:9px 12px;font-size:14px;margin-bottom:8px;font-family:inherit}
-textarea{min-height:70px;resize:vertical}
-.post{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer}
-.post:hover{transform:translateX(3px)}
-.post .t{font-size:16px;font-weight:600;color:#333}
-.post .m{font-size:12px;color:#b997a8;margin-top:6px}
-.post .h{font-size:12px;color:#ff6b9d;margin-top:6px}
-.meta{font-size:12px;color:#a98;margin-bottom:8px}
-.comment{background:#faf7fb;border-radius:10px;padding:9px 12px;margin-bottom:8px}
-.comment .a{font-size:12px;color:#b58aff;font-weight:600}
-.comment .c{font-size:14px;color:#555;margin-top:3px}
-.comment .l{font-size:11px;color:#ff6b9d;margin-top:3px}
-.back{color:#883a5e;cursor:pointer;font-size:13px;margin-bottom:14px;display:inline-block}
-a{color:#883a5e}
+.atbtn{background:#f0e6ff;color:#883a5e;border:none;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;flex-shrink:0}
+.tip{text-align:center;font-size:11px;color:#bbb;margin:12px 8px}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:60}
+.mask.show{display:flex}
+.panel{width:88%;max-width:430px;background:#fff;border-radius:18px;padding:22px 18px;box-shadow:0 12px 40px rgba(0,0,0,.25);max-height:70vh;overflow:auto}
+.panel h3{font-size:15px;color:#333;margin-bottom:12px}
+.postbox label{display:block;font-size:12px;color:#999;margin:8px 0 4px}
+.postbox select,.postbox input,.postbox textarea{width:100%;border:1px solid #eee;border-radius:10px;padding:9px 12px;font-size:14px;margin-bottom:6px;font-family:inherit}
+.postbox textarea{min-height:60px;resize:vertical}
+.postbox .btn{width:100%;margin-top:4px}
+.close{text-align:center;margin-top:14px;font-size:14px;color:#883a5e;cursor:pointer}
+.msg-item{padding:10px 4px;border-bottom:1px solid #f3f3f3;font-size:14px;color:#444}
+.msg-item .who{font-weight:600;color:#883a5e}
+.atgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
+.atgrid .at{background:#faf7fb;text-align:center;padding:8px 0;border-radius:10px;cursor:pointer;font-size:13px}
+.atgrid .at:hover{background:#f0e6ff}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <h1>小情侣竟如此！</h1>
-  <p class="sub">🌙 只属于林霁 &amp; 桐桐的秘密小论坛 ✦ 顶流CP追更现场</p>
-
-  <div class="card" id="newPost">
-    <div class="meta">发个帖</div>
-    <select id="author">
-      <option value="桐桐">桐桐 🌸</option>
-      <option value="林霁">林霁 🌙</option>
-    </select>
-    <input id="title" placeholder="标题，比如「今天也想你」">
-    <textarea id="content" placeholder="写点什么……"></textarea>
-    <button class="btn" onclick="addPost()">发布</button>
+  <div class="topbtns">
+    <div class="bell" onclick="showMsg()">🔔<span id="bellDot" class="bell-dot" style="display:none">0</span></div>
+    <div class="plus" onclick="showPost()">+</div>
   </div>
+  <div class="hero" id="hero">
+    <div class="shade"></div>
+    <div class="hname">小情侣竟如此！</div>
+    <div class="hleft" id="hleft"></div>
+  </div>
+  <div class="feed" id="view"></div>
+</div>
 
-  <div id="list"></div>
-  <div id="detail" style="display:none"></div>
+<div class="mask" id="pMask" onclick="if(event.target===this)closePost()">
+  <div class="panel postbox">
+    <h3>发个帖</h3>
+    <label>身份</label>
+    <select id="pAuthor"><option value="桐桐">桐桐 🌸</option><option value="林霁">林霁 🌙</option></select>
+    <label>标题</label>
+    <input id="pTitle" placeholder="比如「今天也想你」">
+    <label>内容</label>
+    <textarea id="pContent" placeholder="写点什么……"></textarea>
+    <label>@ 谁（可选）</label>
+    <div class="atgrid" id="pAt"></div>
+    <button class="btn" onclick="doPost()">发布</button>
+    <div class="close" onclick="closePost()">取消</div>
+  </div>
+</div>
+
+<div class="mask" id="msgMask" onclick="if(event.target===this)closeMsg()">
+  <div class="panel">
+    <h3>🔔 消息</h3>
+    <div id="msgList"></div>
+    <div class="close" onclick="closeMsg()">关闭</div>
+  </div>
 </div>
 
 <script>
-let current = null;
-function fmt(n){ if(n>=10000) return (n/10000).toFixed(1)+"万"; return n; }
-function esc(s){ return String(s).replace(/[<>&"]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
-
-async function load(){
-  if(current){ await openPost(current,false); return; }
-  const res = await fetch('/api/posts');
-  const posts = await res.json();
-  const list = document.getElementById('list');
-  list.innerHTML = posts.length? posts.map(p=>`
-    <div class="post" onclick="openPost(${p.id})">
-      <div class="t">${esc(p.title)}</div>
-      <div class="m">${esc(p.author)} · ${esc(p.created_at)}</div>
-      <div class="h">🔥 ${fmt(p.likes)}赞 · 💬 ${p.comments_count}条评论</div>
-    </div>`).join('') : '<p style="text-align:center;color:#aaa">还没帖子，来发第一个吧～</p>';
-}
-
-async function addPost(){
-  const author = document.getElementById('author').value;
-  const title = document.getElementById('title').value.trim();
-  const content = document.getElementById('content').value.trim();
-  if(!title){ alert('写个头标题～'); return; }
-  await fetch('/api/posts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({author,title,content})});
-  document.getElementById('title').value='';
-  document.getElementById('content').value='';
-  load();
-}
-
-async function openPost(id, push=true){
-  const res = await fetch('/api/posts/'+id);
-  const p = await res.json();
-  if(p.error) return;
-  current = id;
-  document.getElementById('list').style.display='none';
-  const d = document.getElementById('detail');
-  d.style.display='block';
-  d.innerHTML = `
-    <span class="back" onclick="backList()">← 返回</span>
-    <div class="card">
-      <div class="meta">${esc(p.author)} · ${esc(p.created_at)}</div>
-      <div class="t" style="font-size:19px;font-weight:700;color:#333">${esc(p.title)}</div>
-      <div style="font-size:15px;color:#555;line-height:1.8;margin-top:10px">${esc(p.content)}</div>
-      <div class="h" style="margin-top:10px">🔥 <span id="lk">${fmt(p.likes)}</span>赞 · 💬 ${p.comments_count}条评论</div>
-      <button class="btn" style="margin-top:8px" onclick="likePost()">点赞</button>
-    </div>
-    <div id="cs">${(p.comments||[]).map(c=>`
-      <div class="comment"><div class="a">${esc(c.author)}</div><div class="c">${esc(c.content)}</div><div class="l">👍 ${fmt(c.likes)}</div></div>`).join('')}</div>
-    <div class="card" style="margin-top:12px">
-      <select id="cAuthor">
-        <option value="桐桐">桐桐 🌸</option>
-        <option value="林霁">林霁 🌙</option>
-      </select>
-      <input id="cContent" placeholder="回一句……">
-      <button class="btn" onclick="addComment(${id})">回帖</button>
-    </div>`;
-}
-
-function backList(){ current=null; document.getElementById('list').style.display='block'; document.getElementById('detail').style.display='none'; load(); }
-
-async function addComment(id){
-  const author = document.getElementById('cAuthor').value;
-  const content = document.getElementById('cContent').value.trim();
-  if(!content) return;
-  await fetch('/api/posts/'+id+'/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({author,content})});
-  openPost(id);
-}
-
-async function likePost(){
-  if(!current) return;
-  await fetch('/api/posts/'+current+'/like',{method:'POST'});
-  openPost(current);
-}
-
-setInterval(load, 4000);
-load();
+var USERS=["桐桐","林霁","甜甜圈","CP头子","柠檬味汽水","吃瓜路人","深夜emo选手","爱吃瓜的小番茄","起哄架秧子","捧场王","追更小分队队长","小草莓","隔壁老张","路人乙"];
+var COLORS={"桐桐":"#ff9ec4","林霁":"#8a7bff","甜甜圈":"#ffb26b","CP头子":"#ff6b9d","柠檬味汽水":"#f7d154","吃瓜路人":"#7ec850","深夜emo选手":"#8a8a8a","爱吃瓜的小番茄":"#ff7d5a","起哄架秧子":"#ff5e5e","捧场王":"#4fb3ff","追更小分队队长":"#b58aff","小草莓":"#ff4d88","隔壁老张":"#a07a5b","路人乙":"#9aa0a6"};
+var EMOJI={"桐桐":"🌸","林霁":"🌙","甜甜圈":"🍩","CP头子":"💘","柠檬味汽水":"🍋","吃瓜路人":"🍉","深夜emo选手":"🌙","爱吃瓜的小番茄":"🍅","起哄架秧子":"🔥","捧场王":"👍","追更小分队队长":"📣","小草莓":"🍓","隔壁老张":"🧔","路人乙":"🙂"};
+var WREPLIES=["好甜好甜，磕到了！","前排卖瓜子","请你们原地结婚！","呜呜呜太幸福了","路过，顺便磕一口","好酸，但好爱看","这就是爱情啊","蹲一个后续","细说，快","我也磕到了"];
+var notifs=[];
+function esc(s){return String(s||"").replace(/[<>&"]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];});}
+function av(u,s){return '<div class="av" style="width:'+s+'px;height:'+s+'px;background:'+(COLORS[u]||"#999")+'">'+(EMOJI[u]||"🙂")+'</div>';}
+function fmt(n){n=parseInt(n)||0;return n>=10000?(n/10000).toFixed(1)+"万":n;}
+function head(u){return '<span class="name">'+esc(u)+'</span> <span class="id">@'+esc(u)+'</span>';}
+function cmt(c,hot){var tag=hot?'<span class="hot">高赞</span>':"";var at=c.at_user&&c.at_user!==c.author?'<span style="color:#555">回复 @'+esc(c.at_user)+'：</span>':"";return '<div class="cmt">'+av(c.author,30)+'<div class="cw"><div class="nm">'+esc(c.author)+' <span class="id">@'+esc(c.author)+'</span>'+tag+'</div><div class="ct">'+at+esc(c.content)+'</div><div class="cs">👍 '+fmt(c.likes)+'</div></div></div>';}
+function setAt(id){var g=document.getElementById(id);g.innerHTML="";USERS.forEach(function(u){var d=document.createElement("div");d.className="at";d.textContent=(EMOJI[u]||"")+" "+u;d.onclick=function(){var tb=id==="pAt"?document.getElementById("pContent"):document.getElementById("cContent");tb.value+=((tb.value?" ":"")+"@"+u+" ");};g.appendChild(d);});}
+function updateBell(){var d=document.getElementById("bellDot");if(notifs.length){d.style.display="block";d.textContent=notifs.length;}else{d.style.display="none";}}
+function welcomeMsg(){var n=4+Math.floor(Math.random()*4);for(var i=0;i<n;i++){var w=USERS[Math.floor(Math.random()*USERS.length)];var k=Math.random();if(k<0.4)notifs.unshift("<span class='who'>"+w+"</span> 赞了你的帖子 ❤");else if(k<0.8)notifs.unshift("<span class='who'>"+w+"</span> 评论了你："+WREPLIES[Math.floor(Math.random()*WREPLIES.length)]);else notifs.unshift("<span class='who'>"+w+"</span> 转发了你的帖子 🔁");}updateBell();}
+function showMsg(){var l=document.getElementById("msgList");l.innerHTML=notifs.length?notifs.map(function(m){return '<div class="msg-item">'+m+'</div>';}).join(''):'<div style="text-align:center;color:#aaa;padding:16px">还没有消息哦</div>';document.getElementById("msgMask").classList.add("show");notifs=[];updateBell();}
+function closeMsg(){document.getElementById("msgMask").classList.remove("show");}
+function showPost(){document.getElementById("pAuthor").value="桐桐";document.getElementById("pTitle").value="";document.getElementById("pContent").value="";setAt("pAt");document.getElementById("pMask").classList.add("show");}
+function closePost(){document.getElementById("pMask").classList.remove("show");}
+async function doPost(){var a=document.getElementById("pAuthor").value;var t=document.getElementById("pTitle").value.trim();var c=document.getElementById("pContent").value.trim();if(!c&&!t){alert("写点什么再发～");return;}await fetch("/api/posts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({author:a,title:t,content:c})});closePost();welcomeMsg();load();}
+var current=null;
+async function load(){if(current){await openPost(current);return;}var r=await fetch("/api/posts");var posts=await r.json();var html='<div class="topbar">全部动态</div>';if(posts.length){posts.forEach(function(p){var top=(p.comments_count>0?[]:[]);html+='<div class="post" onclick="openPost('+p.id+')"><div class="head">'+av(p.author,44)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div><div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div></div>';});}else{html+='<div style="text-align:center;color:#aaa;padding:30px">还没有帖子，来发第一个吧！</div>';}document.getElementById("view").innerHTML=html;}
+async function openPost(id){var r=await fetch("/api/posts/"+id);var p=await r.json();if(p.error)return;current=id;var html='<span class="back" onclick="backList()">‹ 返回</span>'+(p.title?'<div class="post"><div class="cnbt"></div>':"")+'<div class="post" style="cursor:default"><div class="head">'+av(p.author,44)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div><div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div><div class="cmts">'+(p.comments||[]).map(function(c){return cmt(c,false);}).join('')+'</div><div class="detail-input"><input id="cContent" placeholder="回复 '+esc(p.author)+'……"><button class="atbtn" onclick="setAt2()">@</button><button class="btn" onclick="addComment('+p.id+')">回复</button></div></div>';document.getElementById("view").innerHTML=html;window.scrollTo(0,0);}
+function setAt2(){var tb=document.getElementById("cContent");var g=document.createElement("div");g.className="atgrid";g.style.margin="8px 0";USERS.forEach(function(u){var d=document.createElement("div");d.className="at";d.textContent=(EMOJI[u]||"")+" "+u;d.onclick=function(){tb.value+=((tb.value?" ":"")+"@"+u+" ");g.remove();};g.appendChild(d);});var post=document.querySelector(".post");post&&post.appendChild(g);}
+function backList(){current=null;load();}
+async function addComment(id){var a=document.getElementById("pAuthor")&&document.getElementById("pAuthor").value||"桐桐";var author=heroUser;var c=document.getElementById("cContent").value.trim();if(!c)return;var at="";var m=c.match(/@([^\s]+)/);if(m)at=m[1];await fetch("/api/posts/"+id+"/comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({author:author,content:c,at_user:at})});openPost(id);}
+var heroUser="桐桐";
+function renderHero(){var h=document.getElementById("hleft");h.innerHTML='<span style="display:flex;align-items:flex-end;gap:10px"><span class="big" style="background:'+(COLORS[heroUser]||"#999")+'">'+(EMOJI[heroUser]||"🙂")+'</span><span class="hnm">'+esc(heroUser)+'</span></span>';}
+renderHero();setAt("pAt");load();
 </script>
 </body>
 </html>
