@@ -1,9 +1,11 @@
 """
-《小情侣竟如此！》 论坛后端（正式版 v3）
+《小情侣竟如此！》 论坛后端（正式版 v4）
 FastAPI + SQLite + MCP
-- 用户资料表 · 预置水军帖(25条生活化+不侵权配图) · 0帖自建 · 情绪智能回复 · 高赞评论预览
+- 用户资料 · 预置水军帖(25条生活化+配图) · 0帖自建 · 情绪智能回复 · 高赞评论预览
+- 评论互动：你评论水军，水军会 @ 你回复
+- 动态发帖：后台小 AI 定时发新生活化帖（帖子持续更新）
 """
-import os, random, sqlite3, json
+import os, random, sqlite3, json, threading, time
 from datetime import datetime
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
@@ -38,8 +40,9 @@ USERS = {
     "隔壁老张": {"bg": "#e6ddcf", "fg": "#40372c", "pet": "", "cover": "#ffd39a", "bio": "隔壁老张，了解一下"},
     "路人乙": {"bg": "#ececec", "fg": "#333", "pet": "🙂", "cover": "#d4c2ff", "bio": "路过，别管我"},
 }
+WATER_USERS = ["甜甜圈", "CP头子", "柠檬味汽水", "吃瓜路人", "深夜emo选手", "爱吃瓜的小番茄", "起哄架秧子", "捧场王", "追更小分队队长", "小草莓", "隔壁老张", "路人乙"]
 
-# 25条生活化水军帖（不含桐桐/林霁，让他们0帖自建），每条配不侵权图
+# 生活化帖池（seed 用 25 条 + 动态发帖池）
 SEED_POSTS = [
     ("甜甜圈", "今天又磕到了！这条街上最甜的就是这对小情侣，我嗑得齁甜～", img("sweet")),
     ("深夜emo选手", "刚下班，地铁里全是人，累得只想回家躺平。唉，又熬过一天了。", img("metro")),
@@ -67,6 +70,27 @@ SEED_POSTS = [
     ("CP头子", "对面CP粉别跑，来我们这，包甜！", img("sweet2")),
     ("小草莓", "闺蜜说陪我脱单，结果她先找到对象了……我酸！", img("berry")),
 ]
+
+# 动态发帖池（更多生活化模板，定时随机发）
+LIVE_POOL = [
+    ("刚吃完夜宵，撑得睡不着，罪恶感拉满。", "夜宵"),
+    ("今天路过花店，买了一把向日葵，心情瞬间好了。", "flower"),
+    ("又是被工作毒打的一天，但想到晚上能躺平就忍了。", "again"),
+    ("耳机里循环一首歌，单曲放了一下午，好上头。", "song"),
+    ("楼下新开了家奶茶店，排队人超多，改天去尝尝。", "milktea"),
+    ("看到一片很好看的晚霞，忍不住拍了下来。", "sunset"),
+    ("今天做了一件一直想做的事，虽然只是小事但很开心。", "happy"),
+    ("突然想吃火锅，但一个人吃又觉得孤单。", "hotpot"),
+    ("窗外的雨一直下，窝在被子里刷手机，舒服。", "window"),
+    ("整理了一下房间，感觉整个人都清爽了。", "clean"),
+    ("健身卡办了三个月，第一次去，哈哈。", "gym"),
+    ("今天食堂的鸡腿超好吃，开心一整天。", "chicken"),
+    ("刷到一条很暖的视频，被治愈到了。", "warm"),
+    ("朋友来我家，一起做了一桌菜，好幸福。", "friend"),
+    ("又要出差了，有点舍不得家里这张床。", "travel"),
+    ("今天学会了做一道菜，成就感满满。", "cook"),
+]
+LIVE_IMG = ["coffee2", "tree", "book", "campus", "beach", "mountain", "lake", "pizza", "cake2", "coffee3", "bread", "cat2", "dog", "panda", "choco", "sakura"]
 
 
 PREFIX = ["爱吃瓜的", "路过看戏的", "磕CP的", "柠檬味的", "前排的", "今晚的", "追更的", "酸酸甜甜的", "不甜的", "喝奶茶的", "等更新的", "冒泡的", "潜水看戏的", "今天也在", "半夜不睡的", "抱紧瓜的", "被甜到的", "无情点赞的", "蹲一个", "围观"]
@@ -104,20 +128,43 @@ def classify(content):
     return random.choice(["fun", "cheer", "lemon", "emo"])
 
 
-def water_reply(content):
-    return random.choice(REPLY_POOL[classify(content)])
+def water_reply(content, target=""):
+    r = random.choice(REPLY_POOL[classify(content)])
+    if target and random.random() < 0.7:
+        return "@" + target + " " + r
+    return r
 
 
-def trigger_water(post_id, content=None):
+def trigger_water(post_id, content=None, at=""):
     con = sqlite3.connect(DB); cur = con.cursor()
     cur.execute("UPDATE posts SET likes=likes+? WHERE id=?", (random.randint(5, 30), post_id))
     n = random.randint(2, 5)
     chosen = random.sample(WATER, n)
     for w in chosen:
         cur.execute("INSERT INTO comments(post_id,author,content,at_user,created_at,likes) VALUES(?,?,?,?,?,?)",
-                    (post_id, w, water_reply(content), "", now(), random.randint(100, 9000)))
+                    (post_id, w, water_reply(content, at), at, now(), random.randint(100, 9000)))
     cur.execute("UPDATE posts SET comments_count=comments_count+? WHERE id=?", (n, post_id))
     con.commit(); con.close()
+
+
+# ---------- 动态发帖线程 ----------
+def live_post():
+    while True:
+        time.sleep(random.randint(180, 300))  # 3~5 分钟
+        try:
+            author = random.choice(WATER_USERS)
+            content, seed = random.choice(LIVE_POOL)
+            image = img(seed + str(random.randint(0, 99)))
+            con = sqlite3.connect(DB); cur = con.cursor()
+            likes = random.randint(10000, 90000)
+            cc = random.randint(30, 300)
+            cur.execute("INSERT INTO posts(author,title,content,img,created_at,likes,comments_count) VALUES(?,?,?,?,?,?,?)",
+                        (author, "", content, image, now(), likes, cc))
+            pid = cur.lastrowid
+            con.commit(); con.close()
+            trigger_water(pid, content)
+        except Exception as e:
+            print("live_post error:", e)
 
 
 class Post(BaseModel):
@@ -211,7 +258,7 @@ def create_comment(post_id: int, c: Comment):
                 (post_id, c.author, c.content, c.at_user, now(), random.randint(100, 9000)))
     cur.execute("UPDATE posts SET comments_count=comments_count+1 WHERE id=?", (post_id,))
     con.commit(); con.close()
-    trigger_water(post_id, c.content)
+    trigger_water(post_id, c.content, at=c.author)  # 水军 @ 回复这个评论作者
     return {"ok": True}
 
 
@@ -284,3 +331,9 @@ def init():
 
 
 init()
+# 启动动态发帖线程
+try:
+    t = threading.Thread(target=live_post, daemon=True)
+    t.start()
+except Exception as e:
+    print("live thread error:", e)
