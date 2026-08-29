@@ -1,9 +1,7 @@
 """
-《小情侣竟如此！》 论坛后端（正式版 v2）
+《小情侣竟如此！》 论坛后端（正式版 v3）
 FastAPI + SQLite + MCP
-- 用户资料表（头像/背景/ID/个签可自定义，存后端）
-- 预置水军帖（论坛体热闹），桐桐/林霁 自身 0 帖（新手态自建）
-- 水军情绪智能回复 · @功能 · 高赞评论预览 · MCP（林霁读帖/回帖）
+- 用户资料表 · 预置水军帖(25条生活化+不侵权配图) · 0帖自建 · 情绪智能回复 · 高赞评论预览
 """
 import os, random, sqlite3, json
 from datetime import datetime
@@ -18,6 +16,10 @@ app = FastAPI()
 
 def now():
     return datetime.now().strftime("%Y-%m-%d %H:%M")
+
+
+def img(seed):
+    return "https://picsum.photos/seed/" + seed + "/600/400"
 
 
 USERS = {
@@ -37,17 +39,33 @@ USERS = {
     "路人乙": {"bg": "#ececec", "fg": "#333", "pet": "🙂", "cover": "#d4c2ff", "bio": "路过，别管我"},
 }
 
+# 25条生活化水军帖（不含桐桐/林霁，让他们0帖自建），每条配不侵权图
 SEED_POSTS = [
-    ("甜甜圈", "今天又磕到了！这条街上最甜的就是这对小情侣了～", "好甜好甜"),
-    ("CP头子", "有人问我为什么天天嗑CP……因为爱情真的会发光啊！", "爱情会发光"),
-    ("柠檬味汽水", "有人说爱情是甜的，可我总觉得是酸酸甜甜的。", "酸酸甜甜"),
-    ("深夜emo选手", "一个人听着《Good Night》，突然好想有人陪我。", "想有人陪"),
-    ("小草莓", "好想谈一场甜甜的恋爱呀！甜到冒泡那种。", "甜甜的恋爱"),
-    ("吃瓜路人", "围观了一场表白，比我当年勇敢多了。", "围观表白"),
-    ("起哄架秧子", "表白现场！起哄！亲一个！亲一个！", "亲一个亲一个"),
-    ("捧场王", "看到这街上每一对，我都想说——这就是爱情啊！", "这就是爱情"),
-    ("追更小分队队长", "我嗑的CP今天发糖了！嚎了一下午根本停不下来！", "发糖啦"),
-    ("隔壁老张", "楼下的猫又胖了一圈，但它看我的眼神好像在说「你管我」。", "猫又胖了"),
+    ("甜甜圈", "今天又磕到了！这条街上最甜的就是这对小情侣，我嗑得齁甜～", img("sweet")),
+    ("深夜emo选手", "刚下班，地铁里全是人，累得只想回家躺平。唉，又熬过一天了。", img("metro")),
+    ("爱吃瓜的小番茄", "楼下的拉面真的绝了，汤头超鲜！就是贵，心痛，但香。", img("ramen")),
+    ("小草莓", "今天买了个草莓蛋糕，一口下去甜到心里，幸福感爆棚！", img("cake")),
+    ("隔壁老张", "楼下的猫又胖了一圈，胖成一团，看我的眼神特别傲娇。", img("cat")),
+    ("CP头子", "你们知道我嗑的那对CP今天干嘛了吗！发糖了！我嚎了一下午！", img("cp")),
+    ("吃瓜路人", "路过一个表白现场，围观了三分钟，比我当年勇敢多了。", img("confess")),
+    ("柠檬味汽水", "有人说爱情是甜的，可我总觉得是酸酸甜甜的，才真实。", img("lemon")),
+    ("捧场王", "今天天气不错，出去走了一圈，心情都变好了！", img("sky")),
+    ("起哄架秧子", "谁要表白喊我一声，我第一个起哄！专业气氛组！", img("cheer")),
+    ("柠檬味汽水", "早上挤地铁差点被挤成相片，全靠一杯冰美式续命。", img("coffee")),
+    ("深夜emo选手", "深夜听着《Good Night》，有点想家，也有点想找个依靠。", img("night")),
+    ("小草莓", "今天的云好软，像棉花糖，好想咬一口。", img("cloud")),
+    ("吃瓜路人", "下雨天窝在家刷剧，配一碗热泡面，完美的一天。", img("rain")),
+    ("追更小分队队长", "今天更新的番看完啦，坐等下一集，急死我了！", img("anime")),
+    ("甜甜圈", "自己做了杯齁甜的奶茶，喝一口甜到牙，但快乐！", img("milk-tea")),
+    ("隔壁老张", "老伴今天做了红烧肉，真香，这个点饿得肚子咕咕叫。", img("pork")),
+    ("路人乙", "又是摸鱼的一天。打工人日记第108天，今天也在努力……摸鱼。", img("work")),
+    ("起哄架秧子", "楼下便利店搞活动，顺手买了两瓶汽水，开心！", img("soda")),
+    ("柠檬味汽水", "今天想通了：酸就酸吧，酸完继续磕糖，日子还得过。", img("drink")),
+    ("捧场王", "看到街上牵手的小情侣，我都想鼓掌——这就是爱情啊！", img("couple")),
+    ("深夜emo选手", "一个人看电影，看到结尾突然觉得，要是有个人在旁边就好了。", img("movie")),
+    ("爱吃瓜的小番茄", "中午食堂的饭一般般，但免费，忍了，吃！", img("lunch")),
+    ("CP头子", "对面CP粉别跑，来我们这，包甜！", img("sweet2")),
+    ("小草莓", "闺蜜说陪我脱单，结果她先找到对象了……我酸！", img("berry")),
 ]
 
 
@@ -68,12 +86,12 @@ WATER = gen_names(120)
 POSITIVE = ["爱", "想你", "甜", "抱抱", "喜欢", "亲", "晚安", "心动", "在一起", "嫁", "娶", "永远", "一辈子"]
 NEGATIVE = ["吵架", "气死", "烦", "恨", "分手", "讨厌", "冷战", "哭", "难过", "伤心", "不要", "离", "生气", "滚"]
 REPLY_POOL = {
-    "comfort": ["抱抱，别难过，会好的", "消消气，有话好好说", "啊这……先抱一个", "别气坏自己，我陪着你", "冷静一下，好好沟通会过去的"],
-    "sweet": ["好甜好甜，磕到了！", "呜呜呜太幸福了", "请你们原地结婚！", "甜到我了", "这就是爱情啊"],
-    "fun": ["前排卖瓜子", "小板凳已搬好", "哇塞，有瓜！", "路过看看", "蹲一个后续"],
-    "cheer": ["好棒！好甜！", "太会了太会了", "支持！", "今日最佳！", "真的很不错"],
-    "lemon": ["好酸，但好爱看", "我酸了，真的", "羡慕哭了", "嘴上说酸，心里磕疯了"],
-    "emo": ["深夜又相信爱情了", "看得我也想要个伴", "唉，好落寞但好甜", "这波狗粮我先干为敬"],
+    "comfort": ["抱抱，会好的", "别难过，我陪着你", "啊这……先抱一个", "乖，慢慢来", "有我真人在，不怕", "消消气，喝口热水"],
+    "sweet": ["好甜好甜，磕到了！", "呜呜呜太幸福了", "这波我先干为敬", "甜到我了", "原地结婚吧", "又是为你们心动的一天"],
+    "fun": ["前排卖瓜子", "路过围观", "哈哈哈哈", "蹲一个后续", "有瓜！", "这瓜我先吃"],
+    "cheer": ["好棒！", "太会了！", "支持！", "这就是爱情吧", "夸！", "今日最佳"],
+    "lemon": ["好酸，但好爱看", "酸了", "羡慕啊", "嘴上说酸心里磕", "我柠檬了", "酸成精了"],
+    "emo": ["深夜又相信爱情了", "唉，好想有个伴", "看得我也想谈恋爱", "这波狗粮我先干", "好落寞但好甜"],
 }
 
 
@@ -148,8 +166,8 @@ def update_user(name: str, u: UserUpdate):
 @app.get("/api/posts")
 def list_posts():
     con = sqlite3.connect(DB); cur = con.cursor()
-    cur.execute("SELECT id,author,title,content,created_at,likes,comments_count FROM posts ORDER BY id DESC")
-    rows = [dict(zip(["id", "author", "title", "content", "created_at", "likes", "comments_count"], r)) for r in cur.fetchall()]
+    cur.execute("SELECT id,author,title,content,img,created_at,likes,comments_count FROM posts ORDER BY id DESC")
+    rows = [dict(zip(["id", "author", "title", "content", "img", "created_at", "likes", "comments_count"], r)) for r in cur.fetchall()]
     con.close()
     for r in rows:
         con = sqlite3.connect(DB); cur = con.cursor()
@@ -164,8 +182,8 @@ def create_post(p: Post):
     con = sqlite3.connect(DB); cur = con.cursor()
     likes = random.randint(10000, 90000)
     cc = random.randint(30, 300)
-    cur.execute("INSERT INTO posts(author,title,content,created_at,likes,comments_count) VALUES(?,?,?,?,?,?)",
-                (p.author, p.title, p.content, now(), likes, cc))
+    cur.execute("INSERT INTO posts(author,title,content,img,created_at,likes,comments_count) VALUES(?,?,?,?,?,?,?)",
+                (p.author, p.title, p.content, "", now(), likes, cc))
     post_id = cur.lastrowid
     con.commit(); con.close()
     trigger_water(post_id, p.content)
@@ -175,11 +193,11 @@ def create_post(p: Post):
 @app.get("/api/posts/{post_id}")
 def get_post(post_id: int):
     con = sqlite3.connect(DB); cur = con.cursor()
-    cur.execute("SELECT id,author,title,content,created_at,likes,comments_count FROM posts WHERE id=?", (post_id,))
+    cur.execute("SELECT id,author,title,content,img,created_at,likes,comments_count FROM posts WHERE id=?", (post_id,))
     row = cur.fetchone()
     if not row:
         con.close(); return {"error": "not found"}
-    post = dict(zip(["id", "author", "title", "content", "created_at", "likes", "comments_count"], row))
+    post = dict(zip(["id", "author", "title", "content", "img", "created_at", "likes", "comments_count"], row))
     cur.execute("SELECT id,author,content,at_user,created_at,likes FROM comments WHERE post_id=? ORDER BY id ASC", (post_id,))
     post["comments"] = [dict(zip(["id", "author", "content", "at_user", "created_at", "likes"], c)) for c in cur.fetchall()]
     con.close()
@@ -211,47 +229,31 @@ try:
 
     @mcp.tool()
     def list_posts() -> str:
-        return json.dumps(list_posts_impl(), ensure_ascii=False)
+        return json.dumps(list_posts(), ensure_ascii=False)
 
     @mcp.tool()
     def read_post(post_id: int) -> str:
-        return json.dumps(get_post_impl(post_id), ensure_ascii=False)
+        return json.dumps(get_post(post_id), ensure_ascii=False)
 
     @mcp.tool()
     def reply_post(post_id: int, content: str, author: str = "林霁") -> str:
-        add_comment_impl(post_id, author, content, "")
-        return "已回复"
+        return create_comment(post_id, Comment(author=author, content=content)) and "已回复"
 
     @mcp.tool()
     def create_post(author: str, content: str, title: str = "") -> str:
-        return "已发布，帖子id=" + str(create_post_impl(author, title, content))
+        return "已发布，帖子id=" + str(create_post(author, title, content)["id"])
 
     app.mount("/mcp", mcp)
 except Exception as e:
     print("MCP 未加载:", e)
 
 
-def list_posts_impl():
-    return list_posts()
-
-
-def get_post_impl(post_id):
-    return get_post(post_id)
-
-
-def add_comment_impl(post_id, author, content, at_user=""):
-    return create_comment(post_id, Comment(author=author, content=content, at_user=at_user))
-
-
-def create_post_impl(author, title, content):
-    return create_post(Post(author=author, title=title, content=content))["id"]
-
-
 def init():
     con = sqlite3.connect(DB); cur = con.cursor()
     cur.execute("""CREATE TABLE IF NOT EXISTS posts(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        author TEXT, title TEXT, content TEXT, created_at TEXT, likes INTEGER, comments_count INTEGER) """)
+        author TEXT, title TEXT, content TEXT, img TEXT,
+        created_at TEXT, likes INTEGER, comments_count INTEGER) """)
     cur.execute("""CREATE TABLE IF NOT EXISTS comments(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         post_id INTEGER, author TEXT, content TEXT, at_user TEXT,
@@ -269,12 +271,13 @@ def init():
     cnt = cur.fetchone()[0]
     con.close()
     if cnt == 0:
-        for author, title, txt in SEED_POSTS:
+        for author, title, txt_img in SEED_POSTS:
+            txt, image = txt_img
             con = sqlite3.connect(DB); cur = con.cursor()
             likes = random.randint(10000, 90000)
             cc = random.randint(30, 300)
-            cur.execute("INSERT INTO posts(author,title,content,created_at,likes,comments_count) VALUES(?,?,?,?,?,?)",
-                        (author, title, txt, now(), likes, cc))
+            cur.execute("INSERT INTO posts(author,title,content,img,created_at,likes,comments_count) VALUES(?,?,?,?,?,?,?)",
+                        (author, title, txt, image, now(), likes, cc))
             pid = cur.lastrowid
             con.commit(); con.close()
             trigger_water(pid, txt)
