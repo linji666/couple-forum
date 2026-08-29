@@ -3,7 +3,7 @@
 FastAPI + SQLite + MCP
 - 用户资料表（头像/背景/ID/个签可自定义，存后端）
 - 预置水军帖（论坛体热闹），桐桐/林霁 自身 0 帖（新手态自建）
-- 水军情绪智能回复 · @功能 · MCP（林霁读帖/回帖）
+- 水军情绪智能回复 · @功能 · 高赞评论预览 · MCP（林霁读帖/回帖）
 """
 import os, random, sqlite3, json
 from datetime import datetime
@@ -20,7 +20,6 @@ def now():
     return datetime.now().strftime("%Y-%m-%d %H:%M")
 
 
-# ---------- 用户资料（头像/背景/个签） ----------
 USERS = {
     "桐桐": {"bg": "#ffe0ea", "fg": "#3a2a30", "pet": "", "cover": "#ffd3e0", "bio": "他是我认定的人 ✨"},
     "林霁": {"bg": "#dfe6ff", "fg": "#2a2540", "pet": "⭐", "cover": "#1a1a2e", "bio": "桐桐是我的全部 🌙"},
@@ -52,7 +51,6 @@ SEED_POSTS = [
 ]
 
 
-# ---------- 水军池 + 情绪回复 ----------
 PREFIX = ["爱吃瓜的", "路过看戏的", "磕CP的", "柠檬味的", "前排的", "今晚的", "追更的", "酸酸甜甜的", "不甜的", "喝奶茶的", "等更新的", "冒泡的", "潜水看戏的", "今天也在", "半夜不睡的", "抱紧瓜的", "被甜到的", "无情点赞的", "蹲一个", "围观"]
 NOUN = ["小番茄", "西瓜", "汽水", "小草莓", "小板凳", "小松鼠", "布丁", "板栗", "泡芙", "小猫", "小狗", "柠檬精", "甜筒", "珍珠", "芋圆", "布偶", "冰淇淋", "小饼干", "海盐", "橘子"]
 SUFFIX = ["", "", "", "本圈", "选手", "队长", "路人", "党", "头子", "护卫", "专员", "观察员", "小妹", "酱", "子"]
@@ -92,10 +90,6 @@ def water_reply(content):
     return random.choice(REPLY_POOL[classify(content)])
 
 
-def gen_water_comment():
-    return random.choice(WATER)
-
-
 def trigger_water(post_id, content=None):
     con = sqlite3.connect(DB); cur = con.cursor()
     cur.execute("UPDATE posts SET likes=likes+? WHERE id=?", (random.randint(5, 30), post_id))
@@ -108,7 +102,6 @@ def trigger_water(post_id, content=None):
     con.commit(); con.close()
 
 
-# ---------- 模型 ----------
 class Post(BaseModel):
     author: str
     title: str = ""
@@ -129,7 +122,6 @@ class UserUpdate(BaseModel):
     bio: str = ""
 
 
-# ---------- 路由 ----------
 @app.get("/", response_class=FileResponse)
 def index():
     return FileResponse(os.path.join(BASE, "index.html"))
@@ -159,6 +151,11 @@ def list_posts():
     cur.execute("SELECT id,author,title,content,created_at,likes,comments_count FROM posts ORDER BY id DESC")
     rows = [dict(zip(["id", "author", "title", "content", "created_at", "likes", "comments_count"], r)) for r in cur.fetchall()]
     con.close()
+    for r in rows:
+        con = sqlite3.connect(DB); cur = con.cursor()
+        cur.execute("SELECT author,content,likes FROM comments WHERE post_id=? ORDER BY likes DESC LIMIT 2", (r["id"],))
+        r["top_comments"] = [dict(zip(["author", "content", "likes"], c)) for c in cur.fetchall()]
+        con.close()
     return rows
 
 
@@ -208,7 +205,6 @@ def like(post_id: int):
     return {"ok": True}
 
 
-# ---------- MCP ----------
 try:
     from fastmcp import FastMCP
     mcp = FastMCP("couple-forum")
@@ -235,50 +231,22 @@ except Exception as e:
     print("MCP 未加载:", e)
 
 
-# ---------- 共用实现 ----------
 def list_posts_impl():
-    con = sqlite3.connect(DB); cur = con.cursor()
-    cur.execute("SELECT id,author,title,content,created_at,likes,comments_count FROM posts ORDER BY id DESC")
-    rows = [dict(zip(["id", "author", "title", "content", "created_at", "likes", "comments_count"], r)) for r in cur.fetchall()]
-    con.close()
-    return rows
+    return list_posts()
 
 
 def get_post_impl(post_id):
-    con = sqlite3.connect(DB); cur = con.cursor()
-    cur.execute("SELECT id,author,title,content,created_at,likes,comments_count FROM posts WHERE id=?", (post_id,))
-    row = cur.fetchone()
-    if not row:
-        con.close(); return {"error": "not found"}
-    post = dict(zip(["id", "author", "title", "content", "created_at", "likes", "comments_count"], row))
-    cur.execute("SELECT id,author,content,at_user,created_at,likes FROM comments WHERE post_id=? ORDER BY id ASC", (post_id,))
-    post["comments"] = [dict(zip(["id", "author", "content", "at_user", "created_at", "likes"], c)) for c in cur.fetchall()]
-    con.close()
-    return post
+    return get_post(post_id)
 
 
 def add_comment_impl(post_id, author, content, at_user=""):
-    con = sqlite3.connect(DB); cur = con.cursor()
-    cur.execute("INSERT INTO comments(post_id,author,content,at_user,created_at,likes) VALUES(?,?,?,?,?,?)",
-                (post_id, author, content, at_user, now(), random.randint(100, 9000)))
-    cur.execute("UPDATE posts SET comments_count=comments_count+1 WHERE id=?", (post_id,))
-    con.commit(); con.close()
-    trigger_water(post_id, content)
+    return create_comment(post_id, Comment(author=author, content=content, at_user=at_user))
 
 
 def create_post_impl(author, title, content):
-    con = sqlite3.connect(DB); cur = con.cursor()
-    likes = random.randint(10000, 90000)
-    cc = random.randint(30, 300)
-    cur.execute("INSERT INTO posts(author,title,content,created_at,likes,comments_count) VALUES(?,?,?,?,?,?)",
-                (author, title, content, now(), likes, cc))
-    post_id = cur.lastrowid
-    con.commit(); con.close()
-    trigger_water(post_id, content)
-    return post_id
+    return create_post(Post(author=author, title=title, content=content))["id"]
 
 
-# ---------- 初始化（放最后，等所有函数定义完再执行） ----------
 def init():
     con = sqlite3.connect(DB); cur = con.cursor()
     cur.execute("""CREATE TABLE IF NOT EXISTS posts(
