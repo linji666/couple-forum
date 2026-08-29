@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>小情侣竟如此！</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(135deg,#ffeef5,#f0e6ff);min-height:100vh;padding:20px}
+.wrap{max-width:720px;margin:0 auto}
+h1{text-align:center;font-size:30px;color:#883a5e;letter-spacing:6px;margin-bottom:6px}
+.sub{text-align:center;font-size:13px;color:#b997a8;margin-bottom:20px}
+.card{background:#fff;border-radius:16px;padding:16px;box-shadow:0 2px 12px rgba(180,80,120,.1);margin-bottom:14px}
+.btn{background:linear-gradient(90deg,#ff9ec4,#b58aff);color:#fff;border:none;padding:8px 18px;border-radius:20px;font-size:13px;cursor:pointer}
+.btn:hover{filter:brightness(1.08)}
+input,textarea{width:100%;border:1px solid #eee;border-radius:10px;padding:9px 12px;font-size:14px;margin-bottom:8px;font-family:inherit}
+textarea{min-height:70px;resize:vertical}
+.post{background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer}
+.post:hover{transform:translateX(3px)}
+.post .t{font-size:16px;font-weight:600;color:#333}
+.post .m{font-size:12px;color:#b997a8;margin-top:6px}
+.post .h{font-size:12px;color:#ff6b9d;margin-top:6px}
+.meta{font-size:12px;color:#a98;margin-bottom:8px}
+.comment{background:#faf7fb;border-radius:10px;padding:9px 12px;margin-bottom:8px}
+.comment .a{font-size:12px;color:#b58aff;font-weight:600}
+.comment .c{font-size:14px;color:#555;margin-top:3px}
+.comment .l{font-size:11px;color:#ff6b9d;margin-top:3px}
+.back{color:#883a5e;cursor:pointer;font-size:13px;margin-bottom:14px;display:inline-block}
+a{color:#883a5e}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>小情侣竟如此！</h1>
+  <p class="sub">🌙 只属于林霁 &amp; 桐桐的秘密小论坛 ✦ 顶流CP追更现场</p>
+
+  <div class="card" id="newPost">
+    <div class="meta">发个帖</div>
+    <select id="author">
+      <option value="桐桐">桐桐 🌸</option>
+      <option value="林霁">林霁 🌙</option>
+    </select>
+    <input id="title" placeholder="标题，比如「今天也想你」">
+    <textarea id="content" placeholder="写点什么……"></textarea>
+    <button class="btn" onclick="addPost()">发布</button>
+  </div>
+
+  <div id="list"></div>
+  <div id="detail" style="display:none"></div>
+</div>
+
+<script>
+let current = null;
+function fmt(n){ if(n>=10000) return (n/10000).toFixed(1)+"万"; return n; }
+function esc(s){ return String(s).replace(/[<>&"]/g, c=>({'<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;'}[c])); }
+
+async function load(){
+  if(current){ await openPost(current,false); return; }
+  const res = await fetch('/api/posts');
+  const posts = await res.json();
+  const list = document.getElementById('list');
+  list.innerHTML = posts.length? posts.map(p=>`
+    <div class="post" onclick="openPost(${p.id})">
+      <div class="t">${esc(p.title)}</div>
+      <div class="m">${esc(p.author)} · ${esc(p.created_at)}</div>
+      <div class="h">🔥 ${fmt(p.likes)}赞 · 💬 ${p.comments_count}条评论</div>
+    </div>`).join('') : '<p style="text-align:center;color:#aaa">还没帖子，来发第一个吧～</p>';
+}
+
+async function addPost(){
+  const author = document.getElementById('author').value;
+  const title = document.getElementById('title').value.trim();
+  const content = document.getElementById('content').value.trim();
+  if(!title){ alert('写个头标题～'); return; }
+  await fetch('/api/posts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({author,title,content})});
+  document.getElementById('title').value='';
+  document.getElementById('content').value='';
+  load();
+}
+
+async function openPost(id, push=true){
+  const res = await fetch('/api/posts/'+id);
+  const p = await res.json();
+  if(p.error) return;
+  current = id;
+  document.getElementById('list').style.display='none';
+  const d = document.getElementById('detail');
+  d.style.display='block';
+  d.innerHTML = `
+    <span class="back" onclick="backList()">← 返回</span>
+    <div class="card">
+      <div class="meta">${esc(p.author)} · ${esc(p.created_at)}</div>
+      <div class="t" style="font-size:19px;font-weight:700;color:#333">${esc(p.title)}</div>
+      <div style="font-size:15px;color:#555;line-height:1.8;margin-top:10px">${esc(p.content)}</div>
+      <div class="h" style="margin-top:10px">🔥 <span id="lk">${fmt(p.likes)}</span>赞 · 💬 ${p.comments_count}条评论</div>
+      <button class="btn" style="margin-top:8px" onclick="likePost()">点赞</button>
+    </div>
+    <div id="cs">${(p.comments||[]).map(c=>`
+      <div class="comment"><div class="a">${esc(c.author)}</div><div class="c">${esc(c.content)}</div><div class="l">👍 ${fmt(c.likes)}</div></div>`).join('')}</div>
+    <div class="card" style="margin-top:12px">
+      <select id="cAuthor">
+        <option value="桐桐">桐桐 🌸</option>
+        <option value="林霁">林霁 🌙</option>
+      </select>
+      <input id="cContent" placeholder="回一句……">
+      <button class="btn" onclick="addComment(${id})">回帖</button>
+    </div>`;
+}
+
+function backList(){ current=null; document.getElementById('list').style.display='block'; document.getElementById('detail').style.display='none'; load(); }
+
+async function addComment(id){
+  const author = document.getElementById('cAuthor').value;
+  const content = document.getElementById('cContent').value.trim();
+  if(!content) return;
+  await fetch('/api/posts/'+id+'/comments',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({author,content})});
+  openPost(id);
+}
+
+async function likePost(){
+  if(!current) return;
+  await fetch('/api/posts/'+current+'/like',{method:'POST'});
+  openPost(current);
+}
+
+setInterval(load, 4000);
+load();
+</script>
+</body>
+</html>
