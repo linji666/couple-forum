@@ -12,9 +12,9 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;min-height:100vh}
 .wrap{max-width:640px;margin:0 auto;background:#f5f5f5}
-.topbtns{position:fixed;top:0;left:0;right:0;max-width:640px;margin:0 auto;z-index:40;width:100%;pointer-events:none}
-.bell{position:absolute;top:10px;left:12px;z-index:45;color:#883a5e;font-size:19px;pointer-events:auto;cursor:pointer}
-.plus{position:absolute;top:10px;right:12px;width:30px;height:30px;border-radius:50%;background:#883a5e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;pointer-events:auto;cursor:pointer}
+.topbtns{position:fixed;top:0;left:0;right:0;max-width:640px;margin:0 auto;z-index:100;width:100%;pointer-events:none;padding-top:env(safe-area-inset-top)}
+.bell{position:absolute;top:12px;left:12px;z-index:101;color:#883a5e;font-size:19px;pointer-events:auto;cursor:pointer}
+.plus{position:absolute;top:12px;right:12px;z-index:101;width:30px;height:30px;border-radius:50%;background:#883a5e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;pointer-events:auto;cursor:pointer}
 .bell-dot{position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;border-radius:9px;background:#ff5e5e;color:#fff;font-size:10px;line-height:16px;text-align:center;padding:0 3px}
 .hero{position:relative;height:200px;background:#1a1a2e;background-size:cover;background-position:center}
 .hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.3))}
@@ -26,8 +26,8 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;m
 .big-wrap .avbody::after{bottom:-26%;width:64%;height:56%}
 .big-wrap .avpet{font-size:20px}
 .idmsg{position:absolute;left:116px;bottom:8px;pointer-events:auto;color:#fff}
-.hnm{font-size:22px;font-weight:800;text-shadow:0 1px 6px rgba(0,0,0,.6);cursor:pointer}
-.hbio{font-size:13px;color:rgba(255,255,255,.9);margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,.5);cursor:pointer}
+.hnm{font-size:22px;font-weight:800;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.hbio{font-size:13px;color:rgba(255,255,255,.9);margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
 .feed{background:#f5f5f5;padding:2px 6px 30px}
 .topbar{display:flex;align-items:center;justify-content:center;padding:6px 0;font-weight:700;font-size:15px;color:#333}
 .back{display:inline-block;color:#883a5e;cursor:pointer;font-size:13px;margin:42px 8px 10px;font-weight:600}
@@ -70,7 +70,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;m
 .btn:hover{filter:brightness(1.08)}
 .atbtn{background:#f0e6ff;color:#883a5e;border:none;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;flex-shrink:0}
 .tip{text-align:center;font-size:11px;color:#bbb;margin:12px 8px}
-.mask{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:60}
+.mask{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;align-items:center;justify-content:center;z-index:120}
 .mask.show{display:flex}
 .panel{width:88%;max-width:430px;background:#fff;border-radius:18px;padding:22px 18px;box-shadow:0 12px 40px rgba(0,0,0,.25);max-height:70vh;overflow:auto}
 .panel h3{font-size:15px;color:#333;margin-bottom:12px}
@@ -168,7 +168,15 @@ function head(u){return '<span class="name" onclick="event.stopPropagation();goP
 function fmt(n){n=num(n);return n>=10000?(n/10000).toFixed(1)+"万":n;}
 function cmt(c,hot){var tag=hot?'<span class="hot">高赞</span>':"";var at=c.at_user&&c.at_user!==c.author?'<span class="at">回复 @'+esc(c.at_user)+'：</span>':"";return '<div class="cmt">'+av(c.author,30,true)+'<div class="cw"><div class="nm">'+esc(c.author)+' <span class="rid" onclick="event.stopPropagation();goProfile(\''+c.author+'\')">@'+esc(c.author)+'</span>'+tag+'</div><div class="ct">'+at+esc(c.content)+'</div><div class="cs"><span>👍 '+num(c.likes)+'</span></div></div></div>';}
 function highCmt(c){return '<div class="cmt">'+av(c.author,30,true)+'<div class="cw"><div class="nm">'+esc(c.author)+' <span class="hot">高赞</span></div><div class="ct">'+esc(c.content)+'</div></div></div>';}
-function heroLeft(u,edit,pickAv){var x=users[u]||{bio:""};var oc=pickAv?' onclick="event.stopPropagation();openPicker(\''+u+'\')" style="cursor:pointer"':' onclick="event.stopPropagation();goProfile(\''+u+'\')" style="cursor:pointer"';return '<div class="big-wrap"><div class="avatar"'+oc+' style="width:92px;height:92px">'+avatarData(u)+'</div></div>'+'<div class="idmsg"><div class="hnm" onclick="event.stopPropagation();showEdit(\'name\',\''+u+'\')">'+esc(u)+' ✏️</div><div class="hbio" onclick="event.stopPropagation();showEdit(\'bio\',\''+u+'\')">'+esc(x.bio||"这个人很懒，什么都没写")+(edit?' ✏️':"")+'</div></div>';}
+function heroLeft(u,edit,pickAv){
+  var x=users[u]||{bio:""};
+  var nmClick=edit?' onclick="event.stopPropagation();showEdit(\'name\',\''+u+'\')" style="cursor:pointer"':'';
+  var bioClick=edit?' onclick="event.stopPropagation();showEdit(\'bio\',\''+u+'\')" style="cursor:pointer"':'';
+  var nmText=esc(u)+(edit?' ✏️':'');
+  var bioText=esc(x.bio||"这个人很懒，什么都没写")+(edit?' ✏️':'');
+  var oc=pickAv?'event.stopPropagation();openPicker(\''+u+'\')':'event.stopPropagation();goProfile(\''+u+'\')';
+  return '<div class="big-wrap"><div class="avatar" onclick="'+oc+'" style="cursor:pointer;width:92px;height:92px">'+avatarData(u)+'</div></div>'+'<div class="idmsg"><div class="hnm"'+nmClick+'>'+nmText+'</div><div class="hbio"'+bioClick+'>'+bioText+'</div></div>';
+}
 function setHero(u){var x=users[u]||{cover:"#1a1a2e"};document.getElementById("hero").style.background=x.cover;document.getElementById("hleft").innerHTML=heroLeft(u,view==="profile",view==="profile");heroUser=u;}
 function coverClick(e){if(e.target===document.getElementById("hero")||e.target.classList.contains("shade"))openCover(heroUser);}
 async function fetchUsers(){var r=await fetch("/api/users");var arr=await r.json();(arr||[]).forEach(function(x){users[x.name]={bg:x.bg,fg:x.fg,pet:x.pet,cover:x.cover,bio:x.bio};});var s=localStorage.getItem("cf_users");if(s){try{var ls=JSON.parse(s);Object.keys(ls).forEach(function(k){users[k]=ls[k];});}catch(e){}}saveUsers();}
