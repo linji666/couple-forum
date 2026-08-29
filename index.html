@@ -159,17 +159,9 @@ function loadUsers(){try{var s=localStorage.getItem("cf_users");if(s)users=JSON.
 function saveFeed(){try{localStorage.setItem("cf_feed",JSON.stringify(feed));}catch(e){}}
 function loadFeedStore(){try{var s=localStorage.getItem("cf_feed");if(s)feed=JSON.parse(s);}catch(e){}}
 function esc(s){return String(s==null?"":s).replace(/[<>&"]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];});}
-function avatarData(u){
-  var x=users[u]||{bg:"#eee",fg:"#333",pet:""};
-  var pet=x.pet?'<span class="avpet">'+x.pet+'</span>':"";
-  if(x.img){return '<img src="'+x.img+'" alt="">';}
-  return '<div class="avbody" style="--bg:'+(x.bg||"#eee")+';--fg:'+(x.fg||"#333")+'">'+pet+'</div>';
-}
-function av(u,s,clickable){
-  var size=s||44;
-  var oc=clickable?' onclick="goProfile(\''+u+'\')" style="cursor:pointer"':"";
-  return '<div class="avatar"'+oc+' style="width:'+size+'px;height:'+size+'px">'+avatarData(u)+'</div>';
-}
+function imgHtml(p){return p.img?'<img class="pimg" src="'+esc(p.img)+'" alt="">':"";}
+function avatarData(u){var x=users[u]||{bg:"#eee",fg:"#333",pet:""};var pet=x.pet?'<span class="avpet">'+x.pet+'</span>':"";if(x.img){return '<img src="'+x.img+'" alt="">';}return '<div class="avbody" style="--bg:'+(x.bg||"#eee")+';--fg:'+(x.fg||"#333")+'">'+pet+'</div>';}
+function av(u,s,clickable){var size=s||44;var oc=clickable?' onclick="goProfile(\''+u+'\')" style="cursor:pointer"':"";return '<div class="avatar"'+oc+' style="width:'+size+'px;height:'+size+'px">'+avatarData(u)+'</div>';}
 function head(u){return '<span class="name" onclick="goProfile(\''+u+'\')">'+esc(u)+'</span> <span class="id" onclick="goProfile(\''+u+'\')">@'+esc(u)+'</span>';}
 function fmt(n){n=num(n);return n>=10000?(n/10000).toFixed(1)+"万":n;}
 function cmt(c,hot){var tag=hot?'<span class="hot">高赞</span>':"";var at=c.at_user&&c.at_user!==c.author?'<span class="at">回复 @'+esc(c.at_user)+'：</span>':"";return '<div class="cmt">'+av(c.author,30,true)+'<div class="cw"><div class="nm">'+esc(c.author)+' <span class="rid" onclick="goProfile(\''+c.author+'\')">@'+esc(c.author)+'</span>'+tag+'</div><div class="ct">'+at+esc(c.content)+'</div><div class="cs"><span>👍 '+num(c.likes)+'</span></div></div></div>';}
@@ -180,15 +172,13 @@ function coverClick(e){if(e.target===document.getElementById("hero")||e.target.c
 async function fetchUsers(){var r=await fetch("/api/users");var arr=await r.json();(arr||[]).forEach(function(x){users[x.name]={bg:x.bg,fg:x.fg,pet:x.pet,cover:x.cover,bio:x.bio};});saveUsers();}
 async function fetchPosts(){var r=await fetch("/api/posts");feed=await r.json();saveFeed();}
 async function load(){
-  view="list";curUser=null;curPost=null;
-  await fetchPosts();
-  setHero("桐桐");
+  view="list";curUser=null;curPost=null;await fetchPosts();setHero("桐桐");
   var html='<div class="topbar">全部动态</div>';
-  if(feed.length){feed.forEach(function(p){var top=p.top_comments||[];var cmts=top.length?'<div class="cmts">'+top.map(function(c){return highCmt(c);}).join('')+'<div class="more">查看全部 '+p.comments_count+' 条评论 ›</div></div>':'';html+='<div class="post" onclick="goPost('+p.id+')"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div>'+cmts+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div></div>';});}
+  if(feed.length){feed.forEach(function(p){var top=p.top_comments||[];var cmts=top.length?'<div class="cmts">'+top.map(function(c){return highCmt(c);}).join('')+'<div class="more">查看全部 '+p.comments_count+' 条评论 ›</div></div>':'';html+='<div class="post" onclick="goPost('+p.id+')"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div>'+imgHtml(p)+cmts+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div></div>';});}
   else{html+='<div style="text-align:center;color:#aaa;padding:30px">还没有帖子，来发第一个吧！</div>';}
   document.getElementById("view").innerHTML=html;
 }
-async function goPost(id){var r=await fetch("/api/posts/"+id);var p=await r.json();if(p.error)return;feed=feed.map(function(x){return x.id===id?p:x;});curPost=id;view="post";setHero(p.author);var html='<span class="back" onclick="load()">‹ 返回</span><div class="post" style="cursor:default"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div><div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div><div class="cmts">'+(p.comments||[]).map(function(c){return cmt(c,false);}).join('')+'</div><div class="detail-input"><input id="cContent" placeholder="回复 '+esc(p.author)+'……"><button class="atbtn" onclick="setAt2()">@</button><button class="btn" onclick="reply('+p.id+')">回复</button></div></div>';document.getElementById("view").innerHTML=html;window.scrollTo(0,0);}
+async function goPost(id){var r=await fetch("/api/posts/"+id);var p=await r.json();if(p.error)return;feed=feed.map(function(x){return x.id===id?p:x;});curPost=id;view="post";setHero(p.author);var html='<span class="back" onclick="load()">‹ 返回</span><div class="post" style="cursor:default"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div>'+imgHtml(p)+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div><div class="cmts">'+(p.comments||[]).map(function(c){return cmt(c,false);}).join('')+'</div><div class="detail-input"><input id="cContent" placeholder="回复 '+esc(p.author)+'……"><button class="atbtn" onclick="setAt2()">@</button><button class="btn" onclick="reply('+p.id+')">回复</button></div></div>';document.getElementById("view").innerHTML=html;window.scrollTo(0,0);}
 function setAt2(){var tb=document.getElementById("cContent");var g=document.createElement("div");g.className="atgrid";g.style.margin="8px 0";Object.keys(users).forEach(function(u){var d=document.createElement("div");d.className="at";d.textContent=(users[u].pet||"")+" "+u;d.onclick=function(){tb.value+=((tb.value?" ":"")+"@"+u+" ");g.remove();};g.appendChild(d);});var post=document.querySelector(".post");post&&post.appendChild(g);}
 function setAt(id){var g=document.getElementById(id);g.innerHTML="";Object.keys(users).forEach(function(u){var d=document.createElement("div");d.className="at";d.textContent=(users[u].pet||"")+" "+u;d.onclick=function(){var tb=id==="pAt"?document.getElementById("pContent"):null;tb&&(tb.value+=((tb.value?" ":"")+"@"+u+" "));};g.appendChild(d);});}
 async function reply(id){var tb=document.getElementById("cContent");var c=tb.value.trim();if(!c)return;var at="";var m=c.match(/@([^\s]+)/);if(m)at=m[1];await fetch("/api/posts/"+id+"/comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({author:heroUser,content:c,at_user:at})});goPost(id);}
@@ -199,7 +189,7 @@ function welcomeMsg(){var ks=Object.keys(users);var n=4+Math.floor(Math.random()
 function updateBell(){var d=document.getElementById("bellDot");if(notifs.length){d.style.display="block";d.textContent=notifs.length;}else{d.style.display="none";}}
 function showMsg(){var l=document.getElementById("msgList");l.innerHTML=notifs.length?notifs.map(function(m){return '<div class="msg-item">'+m+'</div>';}).join(''):'<div style="text-align:center;color:#aaa;padding:16px">还没有消息哦</div>';document.getElementById("msgMask").classList.add("show");notifs=[];updateBell();}
 function closeMsg(){document.getElementById("msgMask").classList.remove("show");}
-function goProfile(u){if(!users[u])return;view="profile";curUser=u;setHero(u);var posts="";var own=feed.filter(function(p){return p.author===u;});if(own.length){own.forEach(function(p){posts+='<div class="post" onclick="goPost('+p.id+')"><div class="body">'+esc(p.content)+'</div><div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div></div>';});}else{posts='<div style="text-align:center;color:#aaa;padding:20px">TA 还没发过帖哦</div>';}document.getElementById("view").innerHTML='<span class="back" onclick="load()">‹ 返回</span><div class="topbar">'+esc(u)+' 的主页</div>'+posts+((u==="桐桐"||u==="林霁")?'<div class="tip">← 点头像/背景能换 · 点名字改网名 · 点个签改签名</div>':"");window.scrollTo(0,0);}
+function goProfile(u){if(!users[u])return;view="profile";curUser=u;setHero(u);var posts="";var own=feed.filter(function(p){return p.author===u;});if(own.length){own.forEach(function(p){posts+='<div class="post" onclick="goPost('+p.id+')"><div class="body">'+esc(p.content)+'</div>'+imgHtml(p)+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div></div>';});}else{posts='<div style="text-align:center;color:#aaa;padding:20px">TA 还没发过帖哦</div>';}document.getElementById("view").innerHTML='<span class="back" onclick="load()">‹ 返回</span><div class="topbar">'+esc(u)+' 的主页</div>'+posts+((u==="桐桐"||u==="林霁")?'<div class="tip">← 点头像/背景能换 · 点名字改网名 · 点个签改签名</div>':"");window.scrollTo(0,0);}
 function showEdit(kind,u){editKind=kind;editFor=u;document.getElementById("eTitle").textContent=(kind==="name"?"换个网名（不实名上网）：":"改个性签名：");document.getElementById("eInput").value=(kind==="name"?u:(users[u].bio||""));document.getElementById("eMask").classList.add("show");}
 function closeEdit(){document.getElementById("eMask").classList.remove("show");}
 function saveEdit(){var v=document.getElementById("eInput").value.trim();if(!v)return;var u=editFor;if(editKind==="name"){doRename(u,v);}else{users[u].bio=v;saveUsers();}closeEdit();renderNow();}
