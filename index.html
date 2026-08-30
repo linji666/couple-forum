@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -65,7 +65,7 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;m
 .hot{background:#fff3f7;color:#ff5e8a;font-size:10px;padding:1px 6px;border-radius:8px;margin-left:6px}
 .more{text-align:center;color:#1a91da;font-size:13px;margin-top:8px;font-weight:600}
 .detail-input{display:flex;gap:8px;margin-top:14px;align-items:center}
-.detail-input input{flex:1;border:1px solid #eee;border-radius:20px;padding:9px 14px;font-size:14px}
+.detail-input input{flex:1;border:1px solid #eee;border-radius:20px;padding:9px 14px;font-size:16px}
 .btn{background:linear-gradient(90deg,#ff9ec4,#b58aff);color:#fff;border:none;padding:8px 14px;border-radius:20px;font-size:13px;cursor:pointer;white-space:nowrap}
 .btn:hover{filter:brightness(1.08)}
 .atbtn{background:#f0e6ff;color:#883a5e;border:none;border-radius:50%;width:34px;height:34px;font-size:16px;cursor:pointer;flex-shrink:0}
@@ -84,12 +84,12 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;m
 .upload input{display:none}
 .close{text-align:center;margin-top:14px;font-size:14px;color:#883a5e;cursor:pointer}
 .postbox label{display:block;font-size:12px;color:#999;margin:8px 0 4px}
-.postbox select,.postbox input,.postbox textarea{width:100%;border:1px solid #eee;border-radius:10px;padding:9px 12px;font-size:14px;margin-bottom:6px;font-family:inherit}
+.postbox select,.postbox input,.postbox textarea{width:100%;border:1px solid #eee;border-radius:10px;padding:9px 12px;font-size:16px;margin-bottom:6px;font-family:inherit}
 .postbox textarea{min-height:60px;resize:vertical}
 .postbox .btn{width:100%;margin-top:4px}
 .msg-item{padding:10px 4px;border-bottom:1px solid #f3f3f3;font-size:14px;color:#444}
 .msg-item .who{font-weight:600;color:#883a5e}
-.edit-input{width:100%;border:1px solid #eee;border-radius:10px;padding:10px 12px;font-size:15px;margin-bottom:8px}
+.edit-input{width:100%;border:1px solid #eee;border-radius:10px;padding:10px 12px;font-size:16px;margin-bottom:8px}
 .editrow{display:flex;gap:8px;margin-top:4px}
 .atgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px}
 .atgrid .at{background:#faf7fb;text-align:center;padding:8px 0;border-radius:10px;cursor:pointer;font-size:13px}
@@ -157,9 +157,10 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;m
 var LIB=["🌸","🌙","🍩","💘","🍋","🍉","🍅","🔥","👍","📣","🍓","🐱","🐶","🍦","✨","🥰","😘","🦄","🐰","🐻","🌈","⭐"];
 var COVERS=["#1a1a2e","#ffd3e0","#c2f0d4","#ffd39a","#d4c2ff","#2b2b3a"];
 var WREPLIES=["好甜好甜，磕到了！","前排卖瓜子","请你们原地结婚！","呜呜呜太幸福了","路过，顺便磕一口","好酸，但好爱看","这就是爱情啊","蹲一个后续","细说，快","我也磕到了","羡慕了"];
-var users={},feed=[],view="list",curUser=null,curPost=null,heroUser="桐桐",pickerFor="",pickerMode="",editKind="",editFor="",notifs=[];
+var users={},feed=[],view="list",curUser=null,curPost=null,heroUser="桐桐",me="桐桐",pickerFor="",pickerMode="",editKind="",editFor="",notifs=[];
 function num(n){return parseInt(String(n).replace(/[^0-9]/g,""))||0;}
 function saveUsers(){try{localStorage.setItem("cf_users",JSON.stringify(users));}catch(e){}}
+function saveUserBackend(name){var u=users[name];if(!u)return;fetch("/api/users/"+encodeURIComponent(name),{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({bg:u.bg||"",fg:u.fg||"",pet:u.pet||"",cover:u.cover||"",bio:u.bio||""})});}
 function esc(s){return String(s==null?"":s).replace(/[<>&"]/g,function(c){return {"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;"}[c];});}
 function imgHtml(p){return p.img?'<img class="pimg" src="'+esc(p.img)+'" alt="">':"";}
 function avatarData(u){var x=users[u]||{bg:"#eee",fg:"#333",pet:""};var pet=x.pet?'<span class="avpet">'+x.pet+'</span>':"";if(x.img){return '<img src="'+x.img+'" alt="">';}return '<div class="avbody" style="--bg:'+(x.bg||"#eee")+';--fg:'+(x.fg||"#333")+'">'+pet+'</div>';}
@@ -188,11 +189,11 @@ async function load(){
   else{html+='<div style="text-align:center;color:#aaa;padding:30px">还没有帖子，来发第一个吧！</div>';}
   document.getElementById("view").innerHTML=html;
 }
-async function goPost(id){var r=await fetch("/api/posts/"+id);var p=await r.json();if(p.error)return;feed=feed.map(function(x){return x.id===id?p:x;});curPost=id;view="post";setHero(p.author);var html='<span class="back" onclick="load()">‹ 返回</span><div class="post" style="cursor:default"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div>'+imgHtml(p)+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div><div class="cmts">'+(p.comments||[]).map(function(c){return cmt(c,false);}).join('')+'</div><div class="detail-input"><input id="cContent" placeholder="回复 '+esc(p.author)+'……"><button class="atbtn" onclick="setAt2()">@</button><button class="btn" onclick="reply('+p.id+')">回复</button></div></div>';document.getElementById("view").innerHTML=html;window.scrollTo(0,0);}
+async function goPost(id){var r=await fetch("/api/posts/"+id);var p=await r.json();if(p.error)return;feed=feed.map(function(x){return x.id===id?p:x;});curPost=id;view="post";setHero(p.author);var html='<span class="back" onclick="load()">‹ 返回</span><div class="post" style="cursor:default"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div>'+imgHtml(p)+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div><div class="cmts">'+(p.comments||[]).map(function(c){return cmt(c,false);}).join('')+'</div><div class="detail-input"><input id="cContent" placeholder="回复 '+esc(p.author)+'……" style="font-size:16px"><button class="atbtn" onclick="setAt2()">@</button><button class="btn" onclick="reply('+p.id+')">回复</button></div></div>';document.getElementById("view").innerHTML=html;window.scrollTo(0,0);}
 function setAt2(){var tb=document.getElementById("cContent");var g=document.createElement("div");g.className="atgrid";g.style.margin="8px 0";Object.keys(users).forEach(function(u){var d=document.createElement("div");d.className="at";d.textContent=(users[u].pet||"")+" "+u;d.onclick=function(){tb.value+=((tb.value?" ":"")+"@"+u+" ");g.remove();};g.appendChild(d);});var post=document.querySelector(".post");post&&post.appendChild(g);}
 function setAt(id){var g=document.getElementById(id);g.innerHTML="";Object.keys(users).forEach(function(u){var d=document.createElement("div");d.className="at";d.textContent=(users[u].pet||"")+" "+u;d.onclick=function(){var tb=id==="pAt"?document.getElementById("pContent"):null;tb&&(tb.value+=((tb.value?" ":"")+"@"+u+" "));};g.appendChild(d);});}
-async function reply(id){var tb=document.getElementById("cContent");var c=tb.value.trim();if(!c)return;var at="";var m=c.match(/@([^\s]+)/);if(m)at=m[1];await fetch("/api/posts/"+id+"/comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({author:heroUser,content:c,at_user:at})});goPost(id);}
-function showPost(){document.getElementById("pAuthor").value="桐桐";document.getElementById("pTitle").value="";document.getElementById("pContent").value="";setAt("pAt");document.getElementById("pMask").classList.add("show");}
+async function reply(id){var tb=document.getElementById("cContent");var c=tb.value.trim();if(!c)return;var at="";var m=c.match(/@([^\s]+)/);if(m)at=m[1];await fetch("/api/posts/"+id+"/comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({author:me,content:c,at_user:at})});goPost(id);}
+function showPost(){document.getElementById("pAuthor").value=me;document.getElementById("pTitle").value="";document.getElementById("pContent").value="";setAt("pAt");document.getElementById("pMask").classList.add("show");}
 function closePost(){document.getElementById("pMask").classList.remove("show");}
 async function doPost(){var a=document.getElementById("pAuthor").value;var t=document.getElementById("pTitle").value.trim();var c=document.getElementById("pContent").value.trim();if(!c&&!t){alert("写点什么再发～");return;}await fetch("/api/posts",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({author:a,title:t,content:c})});closePost();welcomeMsg();load();}
 function welcomeMsg(){var ks=Object.keys(users);var n=4+Math.floor(Math.random()*4);for(var i=0;i<n;i++){var w=ks[Math.floor(Math.random()*ks.length)];var k=Math.random();if(k<0.4)notifs.unshift("<span class='who'>"+w+"</span> 赞了你的帖子 ❤");else if(k<0.8)notifs.unshift("<span class='who'>"+w+"</span> 评论了你："+WREPLIES[Math.floor(Math.random()*WREPLIES.length)]);else notifs.unshift("<span class='who'>"+w+"</span> 转发了你的帖子 🔁");}updateBell();}
@@ -202,12 +203,12 @@ function closeMsg(){document.getElementById("msgMask").classList.remove("show");
 function goProfile(u){if(!users[u])return;view="profile";curUser=u;setHero(u);var btn='<div style="display:flex;gap:8px;margin:0 8px 10px"><button class="btn" onclick="showEdit(\'name\',\''+u+'\')">✏️ 改ID</button><button class="btn" style="background:#b58aff" onclick="showEdit(\'bio\',\''+u+'\')">✏️ 改个签</button></div>';var posts="";var own=feed.filter(function(p){return p.author===u;});if(own.length){own.forEach(function(p){posts+='<div class="post" onclick="goPost('+p.id+')"><div class="body">'+esc(p.content)+'</div>'+imgHtml(p)+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div></div>';});}else{posts='<div style="text-align:center;color:#aaa;padding:20px">TA 还没发过帖哦</div>';}document.getElementById("view").innerHTML='<span class="back" onclick="load()">‹ 返回</span><div class="topbar">'+esc(u)+' 的主页</div>'+btn+posts+((u==="桐桐"||u==="林霁")?'<div class="tip">← 点头像/背景能换 · 点名字改网名 · 点个签改签名</div>':"");window.scrollTo(0,0);}
 function showEdit(kind,u){editKind=kind;editFor=u;document.getElementById("eTitle").textContent=(kind==="name"?"换个网名（不实名上网）：":"改个性签名：");document.getElementById("eInput").value=(kind==="name"?u:(users[u].bio||""));document.getElementById("eMask").classList.add("show");}
 function closeEdit(){document.getElementById("eMask").classList.remove("show");}
-function saveEdit(){var v=document.getElementById("eInput").value.trim();if(!v)return;var u=editFor;if(editKind==="name"){doRename(u,v);}else{users[u].bio=v;saveUsers();}closeEdit();renderNow();}
-function doRename(u,v){if(v===u)return;users[v]=users[u];delete users[u];feed.forEach(function(p){if(p.author===u)p.author=v;(p.comments||[]).forEach(function(c){if(c.author===u)c.author=v;if(c.at_user===u)c.at_user=v;});});if(curUser===u)curUser=v;if(heroUser===u)heroUser=v;saveUsers();}
-function openPicker(name){pickerFor=name;pickerMode="avatar";document.getElementById("pkTitle").textContent="给 "+name+" 换头像";document.getElementById("covlist").innerHTML="";var g=document.getElementById("grid");g.innerHTML="";LIB.forEach(function(e){var d=document.createElement("div");d.className="g";d.textContent=e;d.onclick=function(){users[name].bg="#eee";users[name].fg="#333";users[name].pet=e;delete users[name].img;saveUsers();closePicker();renderNow();};g.appendChild(d);});document.getElementById("mask").classList.add("show");}
-function openCover(u){pickerFor=u;pickerMode="cover";document.getElementById("pkTitle").textContent="换个背景图";document.getElementById("grid").innerHTML="";var c=document.getElementById("covlist");c.innerHTML="";COVERS.forEach(function(g,i){var d=document.createElement("div");d.className="c";d.style.background=g;d.onclick=function(){users[u].cover=g;saveUsers();closePicker();renderNow();};c.appendChild(d);});document.getElementById("mask").classList.add("show");}
+function saveEdit(){var v=document.getElementById("eInput").value.trim();if(!v)return;var u=editFor;if(editKind==="name"){doRename(u,v);}else{users[u].bio=v;saveUsers();saveUserBackend(u);}closeEdit();renderNow();}
+function doRename(u,v){if(v===u)return;users[v]=users[u];delete users[u];feed.forEach(function(p){if(p.author===u)p.author=v;(p.comments||[]).forEach(function(c){if(c.author===u)c.author=v;if(c.at_user===u)c.at_user=v;});});if(curUser===u)curUser=v;if(heroUser===u)heroUser=v;if(me===u)me=v;saveUsers();saveUserBackend(v);}
+function openPicker(name){pickerFor=name;pickerMode="avatar";document.getElementById("pkTitle").textContent="给 "+name+" 换头像";document.getElementById("covlist").innerHTML="";var g=document.getElementById("grid");g.innerHTML="";LIB.forEach(function(e){var d=document.createElement("div");d.className="g";d.textContent=e;d.onclick=function(){users[name].bg="#eee";users[name].fg="#333";users[name].pet=e;delete users[name].img;saveUsers();saveUserBackend(name);closePicker();renderNow();};g.appendChild(d);});document.getElementById("mask").classList.add("show");}
+function openCover(u){pickerFor=u;pickerMode="cover";document.getElementById("pkTitle").textContent="换个背景图";document.getElementById("grid").innerHTML="";var c=document.getElementById("covlist");c.innerHTML="";COVERS.forEach(function(g,i){var d=document.createElement("div");d.className="c";d.style.background=g;d.onclick=function(){users[u].cover=g;saveUsers();saveUserBackend(u);closePicker();renderNow();};c.appendChild(d);});document.getElementById("mask").classList.add("show");}
 function closePicker(){document.getElementById("mask").classList.remove("show");}
-document.getElementById("file").addEventListener("change",function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(ev){if(pickerMode==="cover")users[pickerFor].cover="url("+ev.target.result+") center/cover";else users[pickerFor].img=ev.target.result;saveUsers();closePicker();renderNow();};rd.readAsDataURL(f);});
+document.getElementById("file").addEventListener("change",function(e){var f=e.target.files[0];if(!f)return;var rd=new FileReader();rd.onload=function(ev){if(pickerMode==="cover"){users[pickerFor].cover="url("+ev.target.result+") center/cover";saveUserBackend(pickerFor);}else{users[pickerFor].img=ev.target.result;}saveUsers();closePicker();renderNow();};rd.readAsDataURL(f);});
 function renderNow(){if(view==="profile")goProfile(curUser);else if(view==="post")goPost(curPost);else load();}
 document.getElementById("hero").addEventListener("click",coverClick);
 (async function(){await fetchUsers();await fetchPosts();load();})();
