@@ -1,5 +1,5 @@
 """
-《小情侣竟如此！》 论坛后端（正式版 v5）
+《小情侣竟如此！》 论坛后端（正式版 v6）
 FastAPI + SQLite + MCP
 """
 import os, random, sqlite3, json, threading, time
@@ -261,6 +261,15 @@ def create_comment(post_id: int, c: Comment):
 def like(post_id: int):
     con = sqlite3.connect(DB); cur = con.cursor()
     cur.execute("UPDATE posts SET likes=likes+? WHERE id=?", (random.randint(20, 80), post_id))
+    con.commit(); con.close()
+    return {"ok": True}
+
+
+@app.delete("/api/posts/{post_id}")
+def delete_post(post_id: int):
+    con = sqlite3.connect(DB); cur = con.cursor()
+    cur.execute("DELETE FROM comments WHERE post_id=?", (post_id,))
+    cur.execute("DELETE FROM posts WHERE id=?", (post_id,))
     con.commit(); con.close()
     return {"ok": True}
 

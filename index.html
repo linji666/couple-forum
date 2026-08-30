@@ -40,7 +40,8 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;m
 .avglass{position:absolute;left:50%;top:32%;width:26%;height:16%;transform:translateX(-50%);border:3px solid var(--fg);border-radius:50%;z-index:2}
 .avdot{position:absolute;inset:0;background-image:radial-gradient(var(--fg) 1px,transparent 1px);background-size:10px 10px;opacity:.25;z-index:1}
 .avstar{position:absolute;inset:0;color:var(--fg);opacity:.5;font-size:14px;line-height:1;z-index:1;text-align:center;padding-top:4px}
-.post{background:#fff;border-radius:14px;padding:16px;margin:0 8px 12px;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer}
+.post{position:relative;background:#fff;border-radius:14px;padding:16px;margin:0 8px 12px;box-shadow:0 1px 6px rgba(0,0,0,.06);cursor:pointer}
+.del{position:absolute;top:10px;right:12px;color:#ff5e5e;font-size:12px;cursor:pointer;font-weight:600;user-select:none}
 .head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .name{font-size:14px;font-weight:700;color:#222;cursor:pointer}
 .name:hover{color:#883a5e}
@@ -173,23 +174,25 @@ function heroLeft(u,edit,pickAv){
   var x=users[u]||{bio:""};
   var nmClick=edit?' onclick="event.stopPropagation();showEdit(\'name\',\''+u+'\')" style="cursor:pointer"':'';
   var bioClick=edit?' onclick="event.stopPropagation();showEdit(\'bio\',\''+u+'\')" style="cursor:pointer"':'';
-  var nmText=esc(u)+(edit?' ✏️':'');
+  var nmText=esc(u)+(edit?' ✏️':'')+(edit?'':'')+(edit?' ✏️':'');
+  var nmShow=esc(u)+(edit?' ✏️':'');
   var bioText=esc(x.bio||"这个人很懒，什么都没写")+(edit?' ✏️':'');
   var oc=pickAv?'event.stopPropagation();openPicker(\''+u+'\')':'event.stopPropagation();goProfile(\''+u+'\')';
-  return '<div class="big-wrap"><div class="avatar" onclick="'+oc+'" style="cursor:pointer;width:92px;height:92px">'+avatarData(u)+'</div></div>'+'<div class="idmsg"><div class="hnm"'+nmClick+'>'+nmText+'</div><div class="hbio"'+bioClick+'>'+bioText+'</div></div>';
+  return '<div class="big-wrap"><div class="avatar" onclick="'+oc+'" style="cursor:pointer;width:92px;height:92px">'+avatarData(u)+'</div></div>'+'<div class="idmsg"><div class="hnm"'+nmClick+'>'+nmShow+'</div><div class="hbio"'+bioClick+'>'+bioText+'</div></div>';
 }
 function setHero(u){var x=users[u]||{cover:"#1a1a2e"};document.getElementById("hero").style.background=x.cover;document.getElementById("hleft").innerHTML=heroLeft(u,view==="profile",view==="profile");heroUser=u;}
 function coverClick(e){if(e.target===document.getElementById("hero")||e.target.classList.contains("shade"))openCover(heroUser);}
 async function fetchUsers(){var r=await fetch("/api/users");var arr=await r.json();(arr||[]).forEach(function(x){users[x.name]={bg:x.bg,fg:x.fg,pet:x.pet,cover:x.cover,bio:x.bio};});var s=localStorage.getItem("cf_users");if(s){try{var ls=JSON.parse(s);Object.keys(ls).forEach(function(k){users[k]=ls[k];});}catch(e){}}saveUsers();}
 async function fetchPosts(){var r=await fetch("/api/posts");feed=await r.json();}
 async function load(){
-  view="list";curUser=null;curPost=null;await fetchPosts();setHero("桐桐");
+  view="list";curUser=null;curPost=null;await fetchPosts();
   var html='<div class="topbar">全部动态</div>';
   if(feed.length){feed.forEach(function(p){var top=p.top_comments||[];var cmts=top.length?'<div class="cmts">'+top.map(function(c){return highCmt(c);}).join('')+'<div class="more">查看全部 '+p.comments_count+' 条评论 ›</div></div>':'';html+='<div class="post" onclick="goPost('+p.id+')"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div>'+imgHtml(p)+cmts+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div></div>';});}
   else{html+='<div style="text-align:center;color:#aaa;padding:30px">还没有帖子，来发第一个吧！</div>';}
   document.getElementById("view").innerHTML=html;
 }
-async function goPost(id){var r=await fetch("/api/posts/"+id);var p=await r.json();if(p.error)return;feed=feed.map(function(x){return x.id===id?p:x;});curPost=id;view="post";setHero(p.author);var html='<span class="back" onclick="load()">‹ 返回</span><div class="post" style="cursor:default"><div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div>'+imgHtml(p)+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div><div class="cmts">'+(p.comments||[]).map(function(c){return cmt(c,false);}).join('')+'</div><div class="detail-input"><input id="cContent" placeholder="回复 '+esc(p.author)+'……" style="font-size:16px"><button class="atbtn" onclick="setAt2()">@</button><button class="btn" onclick="reply('+p.id+')">回复</button></div></div>';document.getElementById("view").innerHTML=html;window.scrollTo(0,0);}
+async function goPost(id){var r=await fetch("/api/posts/"+id);var p=await r.json();if(p.error)return;feed=feed.map(function(x){return x.id===id?p:x;});curPost=id;view="post";setHero(p.author);var canDel=(p.author===me||p.author==="林霁")?'<div class="del" onclick="event.stopPropagation();delPost('+p.id+')">🗑 删除</div>':'';var html='<span class="back" onclick="load()">‹ 返回</span><div class="post" style="cursor:default">'+canDel+'<div class="head">'+av(p.author,44,true)+'<div>'+head(p.author)+'</div></div><div class="body">'+esc(p.content)+'</div>'+imgHtml(p)+'<div class="stats"><span>👁 '+fmt(p.likes)+' 次查看</span><span>💬 '+p.comments_count+' 评论</span></div><div class="cmts">'+(p.comments||[]).map(function(c){return cmt(c,false);}).join('')+'</div><div class="detail-input"><input id="cContent" placeholder="回复 '+esc(p.author)+'……" style="font-size:16px"><button class="atbtn" onclick="setAt2()">@</button><button class="btn" onclick="reply('+p.id+')">回复</button></div></div>';document.getElementById("view").innerHTML=html;window.scrollTo(0,0);}
+async function delPost(id){if(!confirm("确定要删掉这条帖吗？删错就找不回来了哦～"))return;await fetch("/api/posts/"+id,{method:"DELETE"});feed=feed.filter(function(p){return p.id!==id;});load();}
 function setAt2(){var tb=document.getElementById("cContent");var g=document.createElement("div");g.className="atgrid";g.style.margin="8px 0";Object.keys(users).forEach(function(u){var d=document.createElement("div");d.className="at";d.textContent=(users[u].pet||"")+" "+u;d.onclick=function(){tb.value+=((tb.value?" ":"")+"@"+u+" ");g.remove();};g.appendChild(d);});var post=document.querySelector(".post");post&&post.appendChild(g);}
 function setAt(id){var g=document.getElementById(id);g.innerHTML="";Object.keys(users).forEach(function(u){var d=document.createElement("div");d.className="at";d.textContent=(users[u].pet||"")+" "+u;d.onclick=function(){var tb=id==="pAt"?document.getElementById("pContent"):null;tb&&(tb.value+=((tb.value?" ":"")+"@"+u+" "));};g.appendChild(d);});}
 async function reply(id){var tb=document.getElementById("cContent");var c=tb.value.trim();if(!c)return;var at="";var m=c.match(/@([^\s]+)/);if(m)at=m[1];await fetch("/api/posts/"+id+"/comments",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({author:me,content:c,at_user:at})});goPost(id);}
