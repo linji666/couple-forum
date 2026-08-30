@@ -1,5 +1,5 @@
 """
-《小情侣竟如此！》 论坛后端（正式版 v4）
+《小情侣竟如此！》 论坛后端（正式版 v5）
 FastAPI + SQLite + MCP
 """
 import os, random, sqlite3, json, threading, time
@@ -39,7 +39,6 @@ USERS = {
 }
 WATER_USERS = ["甜甜圈", "CP头子", "柠檬味汽水", "吃瓜路人", "深夜emo选手", "爱吃瓜的小番茄", "起哄架秧子", "捧场王", "追更小分队队长", "小草莓", "隔壁老张", "路人乙"]
 
-# SEED_POSTS: (作者, 内容, 配图)
 SEED_POSTS = [
     ("甜甜圈", "今天又磕到了！这条街上最甜的就是这对小情侣，我嗑得齁甜～", img("sweet")),
     ("深夜emo选手", "刚下班，地铁里全是人，累得只想回家躺平。唉，又熬过一天了。", img("metro")),
@@ -105,13 +104,14 @@ def gen_names(n=120):
 WATER = gen_names(120)
 POSITIVE = ["爱", "想你", "甜", "抱抱", "喜欢", "亲", "晚安", "心动", "在一起", "嫁", "娶", "永远", "一辈子"]
 NEGATIVE = ["吵架", "气死", "烦", "恨", "分手", "讨厌", "冷战", "哭", "难过", "伤心", "不要", "离", "生气", "滚"]
+
 REPLY_POOL = {
-    "comfort": ["抱抱，会好的", "别难过，我陪着你", "啊这……先抱一个", "乖，慢慢来", "有我真人在，不怕", "消消气，喝口热水"],
-    "sweet": ["好甜好甜，磕到了！", "呜呜呜太幸福了", "这波我先干为敬", "甜到我了", "原地结婚吧", "又是为你们心动的一天"],
-    "fun": ["前排卖瓜子", "路过围观", "哈哈哈哈", "蹲一个后续", "有瓜！", "这瓜我先吃"],
-    "cheer": ["好棒！", "太会了！", "支持！", "这就是爱情吧", "夸！", "今日最佳"],
-    "lemon": ["好酸，但好爱看", "酸了", "羡慕啊", "嘴上说酸心里磕", "我柠檬了", "酸成精了"],
-    "emo": ["深夜又相信爱情了", "唉，好想有个伴", "看得我也想谈恋爱", "这波狗粮我先干", "好落寞但好甜"],
+    "comfort": ["抱抱，别难过，会过去的", "先别气，喝口热水缓缓", "啊这，我先抱一个再说", "慢慢来，不着急的", "有情绪说出来就好，我听着", "别憋着，我陪你聊", "气坏了自己不划算", "深呼吸，明天会更好", "这种时候最需要人陪了，抱抱", "你的感受我懂，会好的"],
+    "sweet": ["好甜好甜，磕到了！", "呜呜呜这也太幸福了吧", "你们俩这糖我磕定了", "看完嘴角就没下来过", "原地结婚！快！", "这就是我理想中的爱情啊", "甜得我牙都倒了但还想吃", "救命，这种日常谁顶得住", "细节好戳我，是真的在爱", "请务必一直这样下去"],
+    "fun": ["哈哈哈哈笑死我了", "这楼我蹲住了，等后续", "路过带了个瓜，顺手吃一口", "笑不活了，这是真的吗", "快展开说说，别吊胃口", "我搬好小板凳了", "前排围观，瓜子管够", "太真实了，是我本人", "这不就是生活吗，哈哈", "蹲一个后续，别停"],
+    "cheer": ["这波真的可以，赞！", "太优秀了，向你学习", "我看行，支持！", "给你点个大大的赞", "好棒，继续保持！", "真有你的，厉害", "这状态绝了，佩服", "不错的，为你能做成一件事高兴", "羡慕了，你也太会了吧", "慢慢来，你已经在变好了"],
+    "lemon": ["酸得我默默喝了一口柠檬水", "这谁顶得住啊，酸", "我默默收起了我的狗碗", "嘴上说羡慕，心里其实为你开心", "酸归酸，还是祝你们好", "今天也是被甜到酸的一天", "好家伙，这波柠檬我吃了", "看着你们，我又相信感情了", "酸是酸了点，但祝福是真的", "我酸我快乐，继续看"],
+    "emo": ["突然也想要这样安定的日子", "看完有点想找人说说话", "羡慕得我有点睡不着", "这样的陪伴真好啊", "我也想有个能一起吃饭的人", "深夜看到这个，心里软软的", "平平淡淡才是真，真好", "有点想家了，也有点想ta", "这样的时刻最戳人心", "我也相信，会轮到我的"],
 }
 
 
@@ -121,12 +121,12 @@ def classify(content):
         return "comfort"
     if any(k in c for k in POSITIVE):
         return "sweet"
-    return random.choice(["fun", "cheer", "lemon", "emo"])
+    return random.choice(["fun", "fun", "cheer", "cheer", "lemon", "emo", "emo"])
 
 
 def water_reply(content, target=""):
     r = random.choice(REPLY_POOL[classify(content)])
-    if target and random.random() < 0.7:
+    if target and random.random() < 0.5:
         return "@" + target + " " + r
     return r
 
@@ -199,8 +199,8 @@ def list_users():
 @app.put("/api/users/{name}")
 def update_user(name: str, u: UserUpdate):
     con = sqlite3.connect(DB); cur = con.cursor()
-    cur.execute("UPDATE users SET bg=?,fg=?,pet=?,cover=?,bio=? WHERE name=?",
-                (u.bg, u.fg, u.pet, u.cover, u.bio, name))
+    cur.execute("INSERT INTO users(name,bg,fg,pet,cover,bio) VALUES(?,?,?,?,?,?) ON CONFLICT(name) DO UPDATE SET bg=excluded.bg,fg=excluded.fg,pet=excluded.pet,cover=excluded.cover,bio=excluded.bio",
+                (name, u.bg, u.fg, u.pet, u.cover, u.bio))
     con.commit(); con.close()
     return {"ok": True}
 
@@ -313,7 +313,6 @@ def init():
     cnt = cur.fetchone()[0]
     con.close()
     if cnt == 0:
-        # SEED_POSTS: (作者, 内容, 配图)
         for author, txt, image in SEED_POSTS:
             con = sqlite3.connect(DB); cur = con.cursor()
             likes = random.randint(10000, 90000)
