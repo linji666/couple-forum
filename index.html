@@ -16,16 +16,16 @@ body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;m
 .bell{position:absolute;top:calc(env(safe-area-inset-top) + 10px);left:12px;z-index:101;color:#883a5e;font-size:19px;pointer-events:auto;cursor:pointer}
 .plus{position:absolute;top:calc(env(safe-area-inset-top) + 10px);right:12px;z-index:101;width:30px;height:30px;border-radius:50%;background:#883a5e;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;pointer-events:auto;cursor:pointer}
 .bell-dot{position:absolute;top:-2px;right:-2px;min-width:16px;height:16px;border-radius:9px;background:#ff5e5e;color:#fff;font-size:10px;line-height:16px;text-align:center;padding:0 3px}
-.hero{position:relative;min-height:200px;background:#1a1a2e;background-size:cover;background-position:center;overflow:hidden}
+.hero{position:relative;min-height:200px;background:#1a1a2e;background-size:cover;background-position:center}
 .hero .shade{position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.3));z-index:1}
 .hname{position:absolute;top:0;left:0;right:0;padding-top:env(safe-area-inset-top);min-height:46px;line-height:46px;text-align:center;background:rgba(255,255,255,.82);color:#883a5e;font-size:20px;font-weight:800;letter-spacing:8px;z-index:3;box-sizing:border-box}
 #hleft{position:absolute;left:0;right:0;top:0;bottom:0;z-index:3;pointer-events:none}
-.big-wrap{position:absolute;left:18px;bottom:-34px;width:92px;height:92px;pointer-events:auto}
+.big-wrap{position:absolute;left:18px;bottom:-34px;width:92px;height:92px;pointer-events:auto;z-index:4}
 .big-wrap .avatar{width:92px;height:92px}
 .big-wrap .avbody::before{top:22%;width:32%;height:32%}
 .big-wrap .avbody::after{bottom:-26%;width:64%;height:56%}
 .big-wrap .avpet{font-size:20px}
-.idmsg{position:absolute;left:116px;bottom:18px;pointer-events:auto;color:#fff}
+.idmsg{position:absolute;left:116px;bottom:8px;pointer-events:auto;color:#fff;z-index:4}
 .hnm{font-size:22px;font-weight:800;text-shadow:0 1px 6px rgba(0,0,0,.6)}
 .hbio{font-size:13px;color:rgba(255,255,255,.9);margin-top:2px;text-shadow:0 1px 4px rgba(0,0,0,.5)}
 .feed{background:#f5f5f5;padding:2px 6px 30px}
